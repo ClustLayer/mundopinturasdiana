@@ -27,4 +27,6 @@
 - `src/components/panel/kit.tsx` — Confirm, `ConfirmDestructiveDialog`, `ConflictDialog`, Modal con foco atrapado opcional, Pager, useDebounced, Badge
 - `src/pages/panel-auditoria-page.tsx` — HU 82 (bitácora, filtros, detalle)
 - `src/features/transversal/messages.ts` — textos HU 96–97 / auditoría
-- Rutas en `auth-secondary-pages.tsx`: segmentos `usuarios`, `auditoria` (admin/gerente con permiso), `cuenta`
+- Rutas en `auth-secondary-pages.tsx`: segmentos `usuarios`, `auditoria` (admin/gerente con permiso), `cuenta`, `productos`, `categorias`
+- `src/pages/panel-productos-page.tsx` — listado, formulario, historial, importación y parámetros
+- `NoEncontrada` — página 404 con gotas de pintura animadas

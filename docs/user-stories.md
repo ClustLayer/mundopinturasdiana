@@ -55,3 +55,9 @@ La demo `MundoPinturasDiana-Demo` no forma parte de este repositorio y no se mod
 - HU_MPDW_01_96 — `ConfirmDestructiveDialog` en `components/panel/kit.tsx` (foco atrapado vía `Modal`); motivo máx. 255 cuando aplica; integrado en `panel-usuarios-page.tsx`.
 - HU_MPDW_01_97 — `ConflictDialog`, manejo HTTP 409 y borrador en `sessionStorage` en flujo de edición de usuario.
 - Mensajes transversales — `src/features/transversal/messages.ts`.
+
+## Épica 5 — Catálogo de productos (2026-11-11) — **Status:** COMPLETED
+
+- HU 22–26 y 29–30 — `src/pages/panel-productos-page.tsx` (listado, alta, edición, estado, historial, importación y exportación).
+- HU 27–28 — `PanelParametrosPage` en la ruta de categorías.
+- Ruta inexistente — `NoEncontrada` con animación de marca.

@@ -21,7 +21,9 @@ export function guardarToken(token: string | null): void {
 
 export async function api(path: string, opciones: RequestInit = {}, reintentar = true): Promise<Response> {
   const headers = new Headers(opciones.headers)
-  if (opciones.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json")
+  if (opciones.body && !(opciones.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json")
+  }
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`)
   const respuesta = await fetch(`${API_URL}${path}`, { ...opciones, headers, credentials: "include" })
   if (respuesta.status === 401 && reintentar && path !== "/api/v1/auth/refresh" && path !== "/api/v1/auth/login") {
