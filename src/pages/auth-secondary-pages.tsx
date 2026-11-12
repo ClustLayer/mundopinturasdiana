@@ -9,6 +9,7 @@ import { useParams } from "react-router-dom"
 import { PanelAccesoDenegadoPage } from "./panel-acceso-denegado-page"
 import { PanelAuditoriaPage } from "./panel-auditoria-page"
 import { PanelCatalogoParamPage } from "./panel-catalogo-param-page"
+import { PanelInventarioPage } from "./panel-inventario-page"
 import { PanelProductosPage } from "./panel-productos-page"
 import { puedeModuloCatalogo } from "../features/accesos/catalogo-panel"
 import { PanelCuentaPage } from "./panel-cuenta-page"
@@ -231,6 +232,7 @@ export function PanelModulePage() {
   }
   if (modulo === "sedes" && (puedeModulo("sedes") || accesosError)) return <PanelSedesPage />
   if (modulo === "productos" && (puedeModulo("productos") || accesosError)) return <PanelProductosPage />
+  if (modulo === "inventario" && (puedeModulo("inventario") || accesosError)) return <PanelInventarioPage />
   if (modulo === "categorias" && (puedeModuloCatalogo("categorias", puedeModulo) || accesosError))
     return <PanelCatalogoParamPage tipo="categorias" />
   if (modulo === "marcas" && (puedeModuloCatalogo("marcas", puedeModulo) || accesosError)) return <PanelCatalogoParamPage tipo="marcas" />
