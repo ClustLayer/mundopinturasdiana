@@ -1,0 +1,51 @@
+name: CI Frontend
+
+on:
+  push:
+    branches: [main, develop, epica-1-autenticacion, epica-2-administracion-usuarios, epica-3-roles-permisos]
+  pull_request:
+    branches: [main, develop, epica-1-autenticacion, epica-2-administracion-usuarios, epica-3-roles-permisos]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, tipos, pruebas y build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: ESLint
+        run: pnpm exec eslint "src/**/*.{ts,tsx}"
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Pruebas unitarias y accesibilidad (Vitest)
+        run: pnpm test
+
+      - name: Build de producción
+        env:
+          VITE_API_URL: http://localhost:8000
+        run: pnpm run build
+
+      - name: Instalar navegadores Playwright
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Pruebas E2E (Playwright)
+        env:
+          CI: "true"
+        run: pnpm run test:e2e

@@ -30,7 +30,7 @@ export const MSG = {
   reenviado: "Se generó un nuevo código. El anterior quedó invalidado.",
 } as const
 
-const EMAIL = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/
+const EMAIL = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
 const ESPECIALES = new Set("!@#$%^&*")
 
 export function correoValido(email: string): boolean {

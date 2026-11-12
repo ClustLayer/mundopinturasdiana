@@ -1,0 +1,88 @@
+import { Link } from "react-router-dom"
+import { AlertTriangle, ArrowUpRight, Banknote, Bell, FileCheck2, ShoppingBag, Truck } from "lucide-react"
+import { rutaDeRol } from "../features/auth/logic"
+import { useApp } from "../app/providers"
+import { formatCOPClient } from "../lib/format"
+import { getLowStockCount, getTodaySalesSummary } from "../lib/public-data"
+import { Panel } from "../components/panel/kit"
+import { EnDesarrolloRecuadro } from "../components/ui/en-desarrollo-recuadro"
+import { Blob } from "../components/ui/splash"
+import { avisoEnDesarrollo } from "../features/en-desarrollo"
+
+export function PanelResumenPage() {
+  const { sesion } = useApp()
+  if (!sesion) return null
+  const base = rutaDeRol(sesion.rol)
+  const role = sesion.rol.toLowerCase()
+  const isEmp = sesion.rol === "Empleado"
+  const { count, total } = getTodaySalesSummary()
+  const low = getLowStockCount()
+  const hi = new Date().getUTCHours()
+  const greet = hi < 12 ? "Buenos días" : hi < 19 ? "Buenas tardes" : "Buenas noches"
+
+  const kpi = [
+    {
+      l: isEmp ? "Total vendido hoy" : "Ventas de hoy",
+      v: formatCOPClient(total),
+      s: isEmp ? "lo que llevas registrado hoy" : `${count} venta${count === 1 ? "" : "s"}`,
+      Icon: Banknote,
+      tone: "bg-brand text-white",
+      href: undefined as string | undefined,
+    },
+    ...(!isEmp
+      ? [
+          { l: "Bajo stock mínimo", v: String(low), s: "productos por reponer", Icon: AlertTriangle, tone: "bg-sun text-ink", href: `${base}/inventario` },
+          { l: "Domicilios pendientes", v: "—", s: "por entregar", Icon: Truck, tone: "bg-cyan text-white", href: `${base}/domicilios` },
+          { l: "Facturas electrónicas pendientes", v: "—", s: "por gestionar o corregir", Icon: FileCheck2, tone: "bg-plum text-white", href: `${base}/facturacion` },
+        ]
+      : []),
+  ]
+
+  return (
+    <div className="mx-auto max-w-6xl">
+      <header className="relative overflow-hidden rounded-3xl bg-plum p-7 text-white sm:p-10">
+        <Blob color="#E11D74" className="absolute -right-10 -top-16 size-64 animate-float opacity-70" />
+        <p className="relative text-sm font-bold uppercase tracking-widest text-cyan">{role}</p>
+        <h1 className="relative mt-1 font-display text-4xl font-extrabold sm:text-5xl">
+          {greet}, {sesion.nombre.split(" ")[0]}
+        </h1>
+        <button type="button" onClick={avisoEnDesarrollo} className="relative mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-plum shadow-[4px_4px_0_0_var(--color-brand)] transition hover:-translate-y-0.5">
+          <ShoppingBag size={18} /> Nueva venta <ArrowUpRight size={16} />
+        </button>
+      </header>
+      <div className={`mt-6 grid gap-4 ${kpi.length > 3 ? "sm:grid-cols-2 lg:grid-cols-4" : kpi.length === 1 ? "max-w-sm" : "sm:grid-cols-3"}`}>
+        {kpi.map(({ l, v, s, Icon, tone, href }) => {
+          const body = (
+            <>
+              <span className={`inline-flex size-10 items-center justify-center rounded-xl ${tone}`}>
+                <Icon size={20} />
+              </span>
+              <p className="mt-4 text-xs font-bold uppercase tracking-wider text-ink/55">{l}</p>
+              <p className="font-display text-3xl font-extrabold text-plum">{v}</p>
+              <p className="text-xs text-ink/55">{s}</p>
+            </>
+          )
+          return href ? (
+            <Link key={l} to={href} className="rounded-2xl border-2 border-plum/10 bg-white p-5 transition hover:-translate-y-0.5 hover:border-plum/30">
+              {body}
+            </Link>
+          ) : (
+            <div key={l} className="rounded-2xl border-2 border-plum/10 bg-white p-5">
+              {body}
+            </div>
+          )
+        })}
+      </div>
+      <div className="mt-6 grid gap-5 lg:grid-cols-2">
+        {!isEmp && (
+          <Panel title="Alertas de inventario">
+            <EnDesarrolloRecuadro compact />
+          </Panel>
+        )}
+        <Panel title="Notificaciones" action={<Bell size={18} className="text-plum/60" />}>
+          <EnDesarrolloRecuadro compact />
+        </Panel>
+      </div>
+    </div>
+  )
+}

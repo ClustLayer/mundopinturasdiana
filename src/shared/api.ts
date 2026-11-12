@@ -1,8 +1,13 @@
+import {
+  guardarTokenPersistido,
+  leerTokenPersistido,
+} from "../features/auth/session-storage"
+
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
 
 export type Cuerpo = Record<string, unknown>
 
-let accessToken: string | null = null
+let accessToken: string | null = leerTokenPersistido()
 let renovando: Promise<boolean> | null = null
 
 export function leerToken(): string | null {
@@ -11,6 +16,7 @@ export function leerToken(): string | null {
 
 export function guardarToken(token: string | null): void {
   accessToken = token
+  guardarTokenPersistido(token)
 }
 
 export async function api(path: string, opciones: RequestInit = {}, reintentar = true): Promise<Response> {
@@ -25,13 +31,19 @@ export async function api(path: string, opciones: RequestInit = {}, reintentar =
   return respuesta
 }
 
-export async function mensajeDe(respuesta: Response): Promise<string> {
+export type ErrorApi = { codigo?: string; mensaje?: string }
+
+export async function cuerpoError(respuesta: Response): Promise<ErrorApi> {
   try {
-    const data = (await respuesta.json()) as { mensaje?: string }
-    return data.mensaje ?? ""
+    return (await respuesta.json()) as ErrorApi
   } catch {
-    return ""
+    return {}
   }
+}
+
+export async function mensajeDe(respuesta: Response): Promise<string> {
+  const data = await cuerpoError(respuesta)
+  return data.mensaje ?? ""
 }
 
 export async function renovarUnaVez(): Promise<boolean> {
@@ -44,15 +56,15 @@ export async function renovarUnaVez(): Promise<boolean> {
     })
       .then(async (respuesta) => {
         if (!respuesta.ok) {
-          accessToken = null
+          guardarToken(null)
           return false
         }
         const data = (await respuesta.json()) as { access_token?: string }
-        accessToken = data.access_token ?? null
-        return Boolean(accessToken)
+        guardarToken(data.access_token ?? null)
+        return Boolean(data.access_token)
       })
       .catch(() => {
-        accessToken = null
+        guardarToken(null)
         return false
       })
       .finally(() => {
