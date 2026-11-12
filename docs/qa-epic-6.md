@@ -12,3 +12,13 @@ Ver también `mpdw-backend/docs/qa-epic-6.md`.
 
 - Crear producto cierra y refresca cuando el API responde 201 (el cuerpo ya no se consume dos veces).
 - Un solo scroll vertical en modales del kit.
+
+## Entrada (demo)
+
+- Pills Manual / Detector / Carga rápida.
+- Costo unitario y proveedor condicional.
+- Badges tipo y origen en existencias/kardex.
+
+## Automatizado
+
+- `src/features/inventory/inventory-bulk.test.ts`
