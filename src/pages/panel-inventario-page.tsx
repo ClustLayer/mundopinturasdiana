@@ -30,6 +30,7 @@ import { toast } from "../features/en-desarrollo"
 import { api, mensajeDe } from "../shared/api"
 
 type Sede = { id_sede: number; nombre: string }
+type ProveedorOpt = { id_proveedor: number; nombre: string; numero_documento?: string }
 type Fila = { id_producto: number; nombre: string; codigo: string; origen: string; minimo: number; celdas: Record<string, number>; total: number }
 type ProdOpt = { id_producto: number; nombre: string; codigo: string; codigo_barras: string; origen: string }
 type Mov = {
@@ -351,6 +352,24 @@ function useSedes() {
   return sedes
 }
 
+function useProveedoresActivos() {
+  const [items, setItems] = useState<ProveedorOpt[]>([])
+  useEffect(() => {
+    void (async () => {
+      let r = await api("/api/v1/inventario/proveedores-activos/")
+      if (!r.ok) r = await api("/api/v1/proveedores/activos/")
+      if (!r.ok) return
+      const body = (await r.json()) as { items: ProveedorOpt[] }
+      setItems(body.items ?? [])
+    })()
+  }, [])
+  const options = useMemo(
+    () => items.map((p) => ({ id: String(p.id_proveedor), label: p.nombre, hint: p.numero_documento })),
+    [items],
+  )
+  return options
+}
+
 function EntryHub() {
   const [mode, setMode] = useState<EntryMode>("manual")
   const tabs: { id: EntryMode; label: string; icon: ReactNode }[] = [
@@ -360,6 +379,7 @@ function EntryHub() {
   ]
   const { productos, options } = useProductos()
   const sedes = useSedes()
+  const proveedores = useProveedoresActivos()
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Modo de entrada">
@@ -377,9 +397,9 @@ function EntryHub() {
           </button>
         ))}
       </div>
-      {mode === "manual" && <ManualEntry productos={productos} options={options} sedes={sedes} />}
-      {mode === "barcode" && <BarcodeEntry productos={productos} sedes={sedes} />}
-      {mode === "bulk" && <BulkEntry productos={productos} sedes={sedes} />}
+      {mode === "manual" && <ManualEntry productos={productos} options={options} sedes={sedes} proveedores={proveedores} />}
+      {mode === "barcode" && <BarcodeEntry productos={productos} sedes={sedes} proveedores={proveedores} />}
+      {mode === "bulk" && <BulkEntry productos={productos} sedes={sedes} proveedores={proveedores} />}
     </div>
   )
 }
@@ -388,8 +408,9 @@ function SharedMeta({
   sede,
   setSede,
   sedes,
-  proveedor,
-  setProveedor,
+  idProveedor,
+  setIdProveedor,
+  proveedores,
   referencia,
   setReferencia,
   notas,
@@ -399,8 +420,9 @@ function SharedMeta({
   sede: string
   setSede: (v: string) => void
   sedes: Sede[]
-  proveedor: string
-  setProveedor: (v: string) => void
+  idProveedor: string
+  setIdProveedor: (v: string) => void
+  proveedores: { id: string; label: string; hint?: string }[]
   referencia: string
   setReferencia: (v: string) => void
   notas: string
@@ -417,14 +439,17 @@ function SharedMeta({
           ))}
         </select>
       </FieldLabel>
-      <FieldLabel label="Proveedor" required={needSupplier}>
-        <input
-          className={input}
-          value={proveedor}
-          onChange={(e) => setProveedor(e.target.value)}
-          placeholder={needSupplier ? "Nombre del proveedor" : "Opcional para productos fabricados"}
+      <div className="sm:col-span-2">
+        <SearchCombobox
+          label="Proveedor"
+          required={needSupplier}
+          value={idProveedor}
+          onChange={setIdProveedor}
+          options={proveedores}
+          placeholder={needSupplier ? "Buscar proveedor activo…" : "Opcional para productos fabricados"}
+          invalid={needSupplier && !idProveedor}
         />
-      </FieldLabel>
+      </div>
       <FieldLabel label="Documento / referencia">
         <input className={input} value={referencia} onChange={(e) => setReferencia(e.target.value)} placeholder="Factura, remisión…" />
       </FieldLabel>
@@ -435,8 +460,18 @@ function SharedMeta({
   )
 }
 
-function ManualEntry({ productos, options, sedes }: { productos: ProdOpt[]; options: { id: string; label: string; hint?: string }[]; sedes: Sede[] }) {
-  const blank = { product: "", sede: sedes[0]?.id_sede ? String(sedes[0].id_sede) : "", cantidad: "1", proveedor: "", costo: "", referencia: "", notas: "" }
+function ManualEntry({
+  productos,
+  options,
+  sedes,
+  proveedores,
+}: {
+  productos: ProdOpt[]
+  options: { id: string; label: string; hint?: string }[]
+  sedes: Sede[]
+  proveedores: { id: string; label: string; hint?: string }[]
+}) {
+  const blank = { product: "", sede: sedes[0]?.id_sede ? String(sedes[0].id_sede) : "", cantidad: "1", id_proveedor: "", costo: "", referencia: "", notas: "" }
   const [m, setM] = useState(blank)
   const [error, setError] = useState("")
   const { run, pending } = useDo()
@@ -448,7 +483,7 @@ function ManualEntry({ productos, options, sedes }: { productos: ProdOpt[]; opti
         setError("Todos los campos obligatorios deben ser diligenciados.")
         return
       }
-      if (needSupplier && !m.proveedor.trim()) {
+      if (needSupplier && !m.id_proveedor) {
         setError("Los productos comprados requieren proveedor.")
         return
       }
@@ -460,7 +495,7 @@ function ManualEntry({ productos, options, sedes }: { productos: ProdOpt[]; opti
           id_sede: Number(m.sede),
           cantidad: m.cantidad,
           costo_unitario: m.costo || undefined,
-          proveedor: m.proveedor,
+          ...(m.id_proveedor ? { id_proveedor: Number(m.id_proveedor) } : {}),
           referencia: m.referencia,
           motivo: m.notas || "Entrada de mercancía",
         }),
@@ -497,8 +532,9 @@ function ManualEntry({ productos, options, sedes }: { productos: ProdOpt[]; opti
           sede={m.sede}
           setSede={(v) => setM({ ...m, sede: v })}
           sedes={sedes}
-          proveedor={m.proveedor}
-          setProveedor={(v) => setM({ ...m, proveedor: v })}
+          idProveedor={m.id_proveedor}
+          setIdProveedor={(v) => setM({ ...m, id_proveedor: v })}
+          proveedores={proveedores}
           referencia={m.referencia}
           setReferencia={(v) => setM({ ...m, referencia: v })}
           notas={m.notas}
@@ -517,9 +553,17 @@ function ManualEntry({ productos, options, sedes }: { productos: ProdOpt[]; opti
 
 type ScanRow = { productId: string; name: string; sku: string; qty: number; unitCost?: string }
 
-function BarcodeEntry({ productos, sedes }: { productos: ProdOpt[]; sedes: Sede[] }) {
+function BarcodeEntry({
+  productos,
+  sedes,
+  proveedores,
+}: {
+  productos: ProdOpt[]
+  sedes: Sede[]
+  proveedores: { id: string; label: string; hint?: string }[]
+}) {
   const [sede, setSede] = useState(sedes[0]?.id_sede ? String(sedes[0].id_sede) : "")
-  const [proveedor, setProveedor] = useState("")
+  const [idProveedor, setIdProveedor] = useState("")
   const [referencia, setReferencia] = useState("")
   const [notas, setNotas] = useState("")
   const [code, setCode] = useState("")
@@ -586,7 +630,7 @@ function BarcodeEntry({ productos, sedes }: { productos: ProdOpt[]; sedes: Sede[
   const commit = () =>
     run(async () => {
       if (!rows.length) return
-      if (needSupplier && !proveedor.trim()) {
+      if (needSupplier && !idProveedor) {
         setError("Los productos comprados requieren proveedor.")
         return
       }
@@ -595,7 +639,7 @@ function BarcodeEntry({ productos, sedes }: { productos: ProdOpt[]; sedes: Sede[
         method: "POST",
         body: JSON.stringify({
           id_sede: Number(sede),
-          proveedor,
+          ...(idProveedor ? { id_proveedor: Number(idProveedor) } : {}),
           referencia,
           motivo: notas,
           lineas: rows.map((row) => ({
@@ -632,8 +676,9 @@ function BarcodeEntry({ productos, sedes }: { productos: ProdOpt[]; sedes: Sede[
           sede={sede}
           setSede={setSede}
           sedes={sedes}
-          proveedor={proveedor}
-          setProveedor={setProveedor}
+          idProveedor={idProveedor}
+          setIdProveedor={setIdProveedor}
+          proveedores={proveedores}
           referencia={referencia}
           setReferencia={setReferencia}
           notas={notas}
@@ -708,9 +753,17 @@ function BarcodeEntry({ productos, sedes }: { productos: ProdOpt[]; sedes: Sede[
   )
 }
 
-function BulkEntry({ productos, sedes }: { productos: ProdOpt[]; sedes: Sede[] }) {
+function BulkEntry({
+  productos,
+  sedes,
+  proveedores,
+}: {
+  productos: ProdOpt[]
+  sedes: Sede[]
+  proveedores: { id: string; label: string; hint?: string }[]
+}) {
   const [sede, setSede] = useState(sedes[0]?.id_sede ? String(sedes[0].id_sede) : "")
-  const [proveedor, setProveedor] = useState("")
+  const [idProveedor, setIdProveedor] = useState("")
   const [referencia, setReferencia] = useState("")
   const [notas, setNotas] = useState("")
   const [text, setText] = useState("")
@@ -730,7 +783,7 @@ function BulkEntry({ productos, sedes }: { productos: ProdOpt[]; sedes: Sede[] }
     run(async () => {
       const ok = preview.lines.filter((l) => l.product)
       if (!ok.length || preview.errors.length) return
-      if (needSupplier && !proveedor.trim()) {
+      if (needSupplier && !idProveedor) {
         setError("Los productos comprados requieren proveedor.")
         return
       }
@@ -739,7 +792,7 @@ function BulkEntry({ productos, sedes }: { productos: ProdOpt[]; sedes: Sede[] }
         method: "POST",
         body: JSON.stringify({
           id_sede: Number(sede),
-          proveedor,
+          ...(idProveedor ? { id_proveedor: Number(idProveedor) } : {}),
           referencia,
           motivo: notas,
           lineas: ok.map((l) => ({
@@ -767,8 +820,9 @@ function BulkEntry({ productos, sedes }: { productos: ProdOpt[]; sedes: Sede[] }
           sede={sede}
           setSede={setSede}
           sedes={sedes}
-          proveedor={proveedor}
-          setProveedor={setProveedor}
+          idProveedor={idProveedor}
+          setIdProveedor={setIdProveedor}
+          proveedores={proveedores}
           referencia={referencia}
           setReferencia={setReferencia}
           notas={notas}
