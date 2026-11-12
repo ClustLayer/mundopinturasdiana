@@ -30,3 +30,5 @@
 - Rutas en `auth-secondary-pages.tsx`: segmentos `usuarios`, `auditoria` (admin/gerente con permiso), `cuenta`, `productos`, `categorias`
 - `src/pages/panel-productos-page.tsx` — listado, formulario, historial, importación y parámetros
 - `NoEncontrada` — página 404 con gotas de pintura animadas
+- `src/pages/panel-inventario-page.tsx` — existencias, kardex y movimientos (Épica 6)
+- Ruta `inventario` en `auth-secondary-pages.tsx`

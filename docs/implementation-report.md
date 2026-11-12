@@ -75,3 +75,12 @@
 - Pantallas de productos y parámetros alineadas a los mensajes de las HU 22–30.
 - Matriz de permisos memorizada para no re-renderizar filas sin cambio de datos.
 - 404 de marca en `NoEncontrada`.
+
+## Épica 6 — Inventario y kardex
+**Status:** COMPLETED
+**Date:** 2026-11-11
+**Branch:** `epica-6-inventario-kardex`
+
+- Pantalla de inventario alineada al módulo demo (existencias por sede, kardex, entrada, ajuste y traslado).
+- El cliente HTTP clona el cuerpo antes de leer el mensaje de error, para que un 201 cierre el modal.
+- El diálogo del kit no suma un segundo scroll.

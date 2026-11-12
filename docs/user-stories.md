@@ -60,5 +60,11 @@ La demo `MundoPinturasDiana-Demo` no forma parte de este repositorio y no se mod
 
 - HU 22–26 y 29–30 — `src/pages/panel-productos-page.tsx` (listado, alta, edición, estado, historial, importación y exportación).
 - HU 27–28 — `panel-catalogo-param-page.tsx` (categorías, marcas, tipos en menú separado).
-- Extras — `docs/user-stories-epic-5-extras.md`, `docs/qa-epic-5.md`, UX formularios (`FormAlert`, placeholders, validación en modal).
+- Extras de sprint 2 — `docs/user-stories-sprint2-extras.md`, `docs/qa-epic-5.md`, UX formularios (`FormAlert`, placeholders, validación en modal).
 - Ruta inexistente — `NoEncontrada` con animación de marca.
+
+## Épica 6 — Inventario y kardex (2026-11-11) — **Status:** COMPLETED
+
+- HU 31–36 — `src/pages/panel-inventario-page.tsx` (existencias, kardex, entrada, ajuste, traslado, alerta de mínimo).
+- Cierre de modales — `mensajeDe` clona la respuesta en `src/shared/api.ts`; un solo scroll en `Modal` (`kit.tsx`).
+- QA — `docs/qa-epic-6.md`. Extras — `docs/user-stories-sprint2-extras.md`.

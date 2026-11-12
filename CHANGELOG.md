@@ -10,6 +10,7 @@ Versionado del portal (**major.sprint.epica**):
 | **1.1.3** | Sprint 1 · Épica 3 (roles y permisos) |
 | **1.1.4** | Sprint 1 · Épica 4 (sedes públicas/admin) |
 | **1.1.5** | Sprint 1 · Cierre (Épicas 13 y 18 + vínculo sede principal) |
+| **1.2.6** | Sprint 2 · Épica 6 (inventario y kardex) + cierre de modales |
 
 ---
 
