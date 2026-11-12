@@ -1,24 +1,65 @@
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { AlertTriangle, ArrowUpRight, Banknote, Bell, FileCheck2, ShoppingBag, Truck } from "lucide-react"
 import { rutaDeRol } from "../features/auth/logic"
 import { useApp } from "../app/providers"
+import { puedeAccion } from "../features/accesos/logic"
+import { useAccesos } from "../features/accesos/accesos-provider"
 import { formatCOPClient } from "../lib/format"
-import { getLowStockCount, getTodaySalesSummary } from "../lib/public-data"
+import { getTodaySalesSummary } from "../lib/public-data"
 import { Panel } from "../components/panel/kit"
-import { EnDesarrolloRecuadro } from "../components/ui/en-desarrollo-recuadro"
 import { Blob } from "../components/ui/splash"
 import { avisoEnDesarrollo } from "../features/en-desarrollo"
+import { api } from "../shared/api"
+
+type PanelResumenPayload = {
+  inventario?: { bajo_stock_minimo: number; alertas: string[] }
+  actividad_reciente?: {
+    id_auditoria: number
+    fecha_hora: string | null
+    accion: string
+    entidad: string
+    resumen: string
+    usuario?: { nombre: string }
+  }[]
+}
 
 export function PanelResumenPage() {
   const { sesion } = useApp()
+  const { accionesModulo, puedeModulo } = useAccesos()
+  const [data, setData] = useState<PanelResumenPayload | null>(null)
+
+  useEffect(() => {
+    if (!sesion) return
+    void api("/api/v1/auth/panel-resumen/").then(async (r) => {
+      if (!r.ok) return
+      setData((await r.json()) as PanelResumenPayload)
+    })
+  }, [sesion])
+
   if (!sesion) return null
   const base = rutaDeRol(sesion.rol)
   const role = sesion.rol.toLowerCase()
   const isEmp = sesion.rol === "Empleado"
   const { count, total } = getTodaySalesSummary()
-  const low = getLowStockCount()
   const hi = new Date().getUTCHours()
   const greet = hi < 12 ? "Buenos días" : hi < 19 ? "Buenas tardes" : "Buenas noches"
+
+  const accionesInv = accionesModulo("inventario")
+  const puedeInventario =
+    Boolean(data?.inventario) ||
+    (accionesInv.length === 0 && puedeModulo("inventario")) ||
+    puedeAccion(accionesInv, "Consultar")
+
+  const accionesAud = accionesModulo("auditoria")
+  const puedeActividad =
+    Boolean(data?.actividad_reciente) ||
+    (accionesAud.length === 0 && puedeModulo("auditoria")) ||
+    puedeAccion(accionesAud, "Consultar")
+
+  const low = data?.inventario?.bajo_stock_minimo
+  const muestraInventario = Boolean(data?.inventario) || puedeInventario
+  const muestraActividad = Boolean(data?.actividad_reciente) || puedeActividad
 
   const kpi = [
     {
@@ -31,12 +72,26 @@ export function PanelResumenPage() {
     },
     ...(!isEmp
       ? [
-          { l: "Bajo stock mínimo", v: String(low), s: "productos por reponer", Icon: AlertTriangle, tone: "bg-sun text-ink", href: `${base}/inventario` },
+          ...(Boolean(data?.inventario) && low !== undefined
+            ? [
+                {
+                  l: "Bajo stock mínimo",
+                  v: String(low),
+                  s: "productos por reponer",
+                  Icon: AlertTriangle,
+                  tone: "bg-sun text-ink",
+                  href: `${base}/inventario`,
+                },
+              ]
+            : []),
           { l: "Domicilios pendientes", v: "—", s: "por entregar", Icon: Truck, tone: "bg-cyan text-white", href: `${base}/domicilios` },
           { l: "Facturas electrónicas pendientes", v: "—", s: "por gestionar o corregir", Icon: FileCheck2, tone: "bg-plum text-white", href: `${base}/facturacion` },
         ]
       : []),
   ]
+
+  const alertas = data?.inventario?.alertas ?? []
+  const actividad = data?.actividad_reciente ?? []
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -74,14 +129,43 @@ export function PanelResumenPage() {
         })}
       </div>
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
-        {!isEmp && (
+        {!isEmp && muestraInventario && (
           <Panel title="Alertas de inventario">
-            <EnDesarrolloRecuadro compact />
+            {alertas.length === 0 ? (
+              <p className="text-sm text-ink/60">No hay alertas de inventario en este momento.</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {alertas.map((a) => (
+                  <li key={a} className="rounded-xl border border-sun/40 bg-sun/10 px-3 py-2 font-medium text-ink">
+                    {a}
+                  </li>
+                ))}
+              </ul>
+            )}
           </Panel>
         )}
-        <Panel title="Notificaciones" action={<Bell size={18} className="text-plum/60" />}>
-          <EnDesarrolloRecuadro compact />
-        </Panel>
+        {muestraActividad && (
+          <Panel title="Notificaciones" action={<Bell size={18} className="text-plum/60" />}>
+            {actividad.length === 0 ? (
+              <p className="text-sm text-ink/60">Sin actividad reciente en auditoría.</p>
+            ) : (
+              <ul className="space-y-3 text-sm">
+                {actividad.map((row) => (
+                  <li key={row.id_auditoria} className="rounded-xl border border-plum/10 bg-paper px-3 py-2">
+                    <p className="font-semibold text-plum">
+                      {row.accion} · {row.entidad}
+                    </p>
+                    <p className="text-ink/70">{row.resumen}</p>
+                    <p className="mt-1 text-xs text-ink/45">
+                      {row.usuario?.nombre || "Sistema"}
+                      {row.fecha_hora ? ` · ${new Date(row.fecha_hora).toLocaleString("es-CO")}` : ""}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+        )}
       </div>
     </div>
   )

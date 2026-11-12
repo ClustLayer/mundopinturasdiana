@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { History, ImagePlus, Loader2, Pencil, Plus, Power, Search, Upload } from "lucide-react"
+import { Download, History, ImagePlus, Loader2, Pencil, Plus, Power, Search, Upload } from "lucide-react"
 import {
   Confirm,
   Empty,
@@ -106,7 +106,7 @@ export function PanelProductosPage() {
   const [estadoTarget, setEstadoTarget] = useState<Item | null>(null)
   const [historialId, setHistorialId] = useState<number | null>(null)
   const [importOpen, setImportOpen] = useState(false)
-  const [formato, setFormato] = useState("")
+  const [exportOpen, setExportOpen] = useState(false)
   const { run, pending } = useDo()
 
   const cargar = useCallback(async () => {
@@ -150,26 +150,6 @@ export function PanelProductosPage() {
   const toggleOrden = (col: string) => setOrden((o) => (o === col ? `-${col}` : col))
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
-  const exportar = () =>
-    run(async () => {
-      if (!formato) return
-      const qs = new URLSearchParams({ formato, q: debounced, estado, stock })
-      if (categoria) qs.set("id_categoria", categoria)
-      if (marca) qs.set("id_marca", marca)
-      if (tipo) qs.set("id_tipo", tipo)
-      const r = await api(`/api/v1/catalogo/productos/exportar/?${qs}`)
-      if (!r.ok) {
-        toast((await mensajeDe(r)) || "No fue posible generar la exportación. Intente nuevamente.")
-        return
-      }
-      const blob = await r.blob()
-      const a = document.createElement("a")
-      a.href = URL.createObjectURL(blob)
-      a.download = formato === "csv" ? "catalogo-productos.csv" : "catalogo-productos.xlsx"
-      a.click()
-      toast("Exportación generada correctamente.")
-    })
-
   return (
     <section className="mx-auto max-w-6xl">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -183,6 +163,11 @@ export function PanelProductosPage() {
               <Upload size={16} aria-hidden /> Importar
             </button>
           )}
+          {puedeExportar && (
+            <button type="button" className={btnGhost} onClick={() => setExportOpen(true)}>
+              <Download size={16} aria-hidden /> Exportar
+            </button>
+          )}
           {puedeCrear && (
             <button type="button" className={btnPrimary} onClick={() => setForm("new")}>
               <Plus size={16} aria-hidden /> Nuevo producto
@@ -192,17 +177,28 @@ export function PanelProductosPage() {
       </header>
       <div className="mb-5 rounded-2xl border-2 border-plum/10 bg-white p-4 shadow-[4px_4px_0_0_var(--color-plum)]">
         <p className="mb-3 text-xs font-bold uppercase tracking-widest text-cyan-dark">Filtros</p>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-          <label className="relative sm:col-span-2">
+        <div className="space-y-3">
+          <label className="relative block">
             <span className="sr-only">Buscar productos</span>
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-plum/40" />
             <input value={q} onChange={(e) => { setPage(1); setQ(e.target.value) }} placeholder="Nombre, código, barras o marca" className={`${input} !mt-0 pl-9`} />
           </label>
-          <Select label="Categoría" value={categoria} onChange={(v) => { setPage(1); setCategoria(v) }} todos options={catalogos.categorias.map((c) => ({ v: String(c.id_categoria), l: c.nombre }))} />
-          <Select label="Marca" value={marca} onChange={(v) => { setPage(1); setMarca(v) }} todos options={catalogos.marcas.map((c) => ({ v: String(c.id_marca), l: c.nombre }))} />
-          <Select label="Tipo" value={tipo} onChange={(v) => { setPage(1); setTipo(v) }} todos options={catalogos.tipos.map((c) => ({ v: String(c.id_tipo_producto), l: c.nombre }))} />
-          <Select label="Estado" value={estado === "todos" ? "" : estado} onChange={(v) => { setPage(1); setEstado(v || "todos") }} todos options={[{ v: "activo", l: "Activo" }, { v: "inactivo", l: "Inactivo" }]} />
-          <Select label="Stock" value={stock === "todos" ? "" : stock} onChange={(v) => { setPage(1); setStock(v || "todos") }} todos options={[{ v: "con_stock", l: "Con stock" }, { v: "bajo", l: "Stock bajo" }, { v: "agotado", l: "Agotado" }]} />
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+            <Select label="Categoría" value={categoria} onChange={(v) => { setPage(1); setCategoria(v) }} todos options={catalogos.categorias.map((c) => ({ v: String(c.id_categoria), l: c.nombre }))} />
+            <Select label="Marca" value={marca} onChange={(v) => { setPage(1); setMarca(v) }} todos options={catalogos.marcas.map((c) => ({ v: String(c.id_marca), l: c.nombre }))} />
+            <Select label="Tipo" value={tipo} onChange={(v) => { setPage(1); setTipo(v) }} todos options={catalogos.tipos.map((c) => ({ v: String(c.id_tipo_producto), l: c.nombre }))} />
+            <Select label="Estado" value={estado === "todos" ? "" : estado} onChange={(v) => { setPage(1); setEstado(v || "todos") }} todos options={[{ v: "activo", l: "Activo" }, { v: "inactivo", l: "Inactivo" }]} />
+            <Select label="Stock" value={stock === "todos" ? "" : stock} onChange={(v) => { setPage(1); setStock(v || "todos") }} todos options={[{ v: "con_stock", l: "Con stock" }, { v: "bajo", l: "Stock bajo" }, { v: "agotado", l: "Agotado" }]} />
+            <FieldLabel label="Por página">
+              <select className={input} value={pageSize} onChange={(e) => { setPage(1); setPageSize(Number(e.target.value)) }}>
+                {[10, 25, 50].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </FieldLabel>
+          </div>
         </div>
       </div>
       {error && (
@@ -233,9 +229,9 @@ export function PanelProductosPage() {
                   <td className="px-3 py-2">{p.imagen_url ? <img src={`${API_URL}/api/v1/catalogo/media/${p.imagen_url}`} alt="" className="size-10 rounded-lg object-cover" /> : <span className="grid size-10 place-items-center rounded-lg bg-plum-soft text-[10px] text-plum">N/A</span>}</td>
                   <td className="px-3 py-2 font-mono text-xs">{p.codigo_producto}</td>
                   <td className="px-3 py-2 font-semibold">{p.nombre}</td>
-                  <td className="px-3 py-2">{p.categoria}</td>
-                  <td className="px-3 py-2">{p.marca}</td>
-                  <td className="px-3 py-2">{p.tipo}</td>
+                  <td className="px-3 py-2">{p.categoria ? p.categoria : <SinAsignarBadge />}</td>
+                  <td className="px-3 py-2">{p.marca ? p.marca : <SinAsignarBadge />}</td>
+                  <td className="px-3 py-2">{p.tipo ? p.tipo : <SinAsignarBadge />}</td>
                   <td className="px-3 py-2"><OriginBadge value={p.origen || "comprado"} /></td>
                   <td className="px-3 py-2">{p.precio_venta}</td>
                   <td className="px-3 py-2">
@@ -256,23 +252,6 @@ export function PanelProductosPage() {
         </div>
       )}
       <p className="mt-3 text-sm text-ink/70" role="status">{mensaje}</p>
-      <div className="mt-2 flex flex-wrap items-center gap-3">
-        <label className="text-sm font-semibold">Por página
-          <select className={`${input} ml-2 !mt-0 w-auto`} value={pageSize} onChange={(e) => { setPage(1); setPageSize(Number(e.target.value)) }}>
-            {[10, 25, 50].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </label>
-        {puedeExportar && (
-          <>
-            <select aria-label="Formato de exportación" className={`${input} !mt-0 w-auto`} value={formato} onChange={(e) => setFormato(e.target.value)}>
-              <option value="">Formato</option>
-              <option value="xlsx">Excel (.xlsx)</option>
-              <option value="csv">CSV</option>
-            </select>
-            <button type="button" className={btnPrimary} disabled={!formato || pending} onClick={() => void exportar()}>Exportar</button>
-          </>
-        )}
-      </div>
       <Pager page={page} totalPages={totalPages} total={total} onPage={setPage} />
       {form !== null && (
         <ProductoForm
@@ -308,7 +287,99 @@ export function PanelProductosPage() {
       />
       {historialId !== null && <HistorialModal id={historialId} onClose={() => setHistorialId(null)} />}
       {importOpen && <ImportarModal onClose={() => { setImportOpen(false); void cargar() }} />}
+      {exportOpen && (
+        <ExportarProductosModal
+          onClose={() => setExportOpen(false)}
+          page={page}
+          pageSize={pageSize}
+          filters={{ q: debounced, estado, stock, categoria, marca, tipo }}
+        />
+      )}
     </section>
+  )
+}
+
+function SinAsignarBadge() {
+  return <span className="rounded-full bg-ink/5 px-2 py-0.5 text-[10px] font-bold uppercase text-ink/45">Sin asignar</span>
+}
+
+function nombreArchivoExport(header: string | null, fallback: string): string {
+  if (!header) return fallback
+  const star = /filename\*=(?:UTF-8'')?([^;\n]+)/i.exec(header)
+  if (star) return decodeURIComponent(star[1].replace(/"/g, "").trim())
+  const plain = /filename="?([^";\n]+)"?/i.exec(header)
+  return plain ? plain[1].trim() : fallback
+}
+
+function ExportarProductosModal({
+  onClose,
+  page,
+  pageSize,
+  filters,
+}: {
+  onClose: () => void
+  page: number
+  pageSize: number
+  filters: { q: string; estado: string; stock: string; categoria: string; marca: string; tipo: string }
+}) {
+  const [alcance, setAlcance] = useState<"pagina" | "filtrado">("filtrado")
+  const [formato, setFormato] = useState<"csv" | "xlsx">("xlsx")
+  const [error, setError] = useState("")
+  const { run, pending } = useDo()
+
+  const exportar = () =>
+    run(async () => {
+      setError("")
+      const qs = new URLSearchParams({ formato, alcance, q: filters.q, estado: filters.estado, stock: filters.stock })
+      if (filters.categoria) qs.set("id_categoria", filters.categoria)
+      if (filters.marca) qs.set("id_marca", filters.marca)
+      if (filters.tipo) qs.set("id_tipo", filters.tipo)
+      if (alcance === "pagina") {
+        qs.set("page", String(page))
+        qs.set("page_size", String(pageSize))
+      }
+      const r = await api(`/api/v1/catalogo/productos/exportar/?${qs}`)
+      if (!r.ok) {
+        const msg = (await mensajeDe(r)) || "No fue posible generar la exportación. Intente nuevamente."
+        setError(msg)
+        return
+      }
+      const blob = await r.blob()
+      const fallback = formato === "csv" ? "catalogo-productos.csv" : "catalogo-productos.xlsx"
+      const name = nombreArchivoExport(r.headers.get("Content-Disposition"), fallback)
+      const a = document.createElement("a")
+      a.href = URL.createObjectURL(blob)
+      a.download = name
+      a.click()
+      toast("Exportación generada correctamente.")
+      onClose()
+    })
+
+  return (
+    <Modal open title="Exportar productos" onClose={onClose}>
+      <FormAlert message={error} />
+      <FieldLabel label="Alcance" required>
+        <select className={input} value={alcance} onChange={(e) => setAlcance(e.target.value as "pagina" | "filtrado")}>
+          <option value="filtrado">Todos los resultados filtrados</option>
+          <option value="pagina">Solo la página actual</option>
+        </select>
+      </FieldLabel>
+      <FieldLabel label="Formato" required className="mt-3">
+        <select className={input} value={formato} onChange={(e) => setFormato(e.target.value as "csv" | "xlsx")}>
+          <option value="xlsx">Excel (.xlsx)</option>
+          <option value="csv">CSV (.csv)</option>
+        </select>
+      </FieldLabel>
+      <div className="mt-6 flex justify-end gap-3">
+        <button type="button" className={btnGhost} onClick={onClose} disabled={pending}>
+          Cancelar
+        </button>
+        <button type="button" className={btnPrimary} disabled={pending} onClick={() => void exportar()}>
+          {pending ? <Loader2 size={16} className="animate-spin" aria-hidden /> : null}
+          Exportar
+        </button>
+      </div>
+    </Modal>
   )
 }
 

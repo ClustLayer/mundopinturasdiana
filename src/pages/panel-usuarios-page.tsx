@@ -18,7 +18,9 @@ import {
   useDo,
 } from "../components/panel/kit"
 import { MSG } from "../features/usuarios/messages"
-import { formularioUsuarioCompleto } from "../features/usuarios/logic"
+import { RolBadge } from "../features/auditoria/accion-badge"
+import { formularioUsuarioCompleto, telefonoValido } from "../features/usuarios/logic"
+import { PhoneInput } from "../components/panel/phone-input"
 import { toast } from "../features/en-desarrollo"
 import { MSG_TRANSVERSAL } from "../features/transversal/messages"
 import { api, cuerpoError, mensajeDe } from "../shared/api"
@@ -202,7 +204,7 @@ export function PanelUsuariosPage() {
                   <td className="px-4 py-3 font-semibold">{u.nombre_completo}</td>
                   <td className="px-4 py-3">{u.documento}</td>
                   <td className="px-4 py-3">{u.email}</td>
-                  <td className="px-4 py-3"><Badge value={u.rol} /></td>
+                  <td className="px-4 py-3"><RolBadge rol={u.rol} /></td>
                   <td className="px-4 py-3"><Badge value={u.estado} /></td>
                   <td className="px-4 py-3">{u.ultimo_acceso ? new Date(u.ultimo_acceso).toLocaleString() : "—"}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-right">
@@ -472,6 +474,10 @@ function UsuarioFormModal({
     run(async () => {
       setError("")
       setConfirmRol(false)
+      if (telefono.trim() && !telefonoValido(telefono)) {
+        setError(MSG.telefonoInvalido)
+        return
+      }
       const payload = {
         nombre,
         apellido,
@@ -561,10 +567,7 @@ function UsuarioFormModal({
           Documento<span className="text-brand"> *</span>
           <input required value={documento} onChange={(e) => setDocumento(e.target.value)} className={input} placeholder="Ej. 1001234567" />
         </label>
-        <label className="block text-sm font-semibold">
-          Teléfono
-          <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className={input} placeholder="+573001234567" />
-        </label>
+        <PhoneInput label="Teléfono" value={telefono} onChange={setTelefono} invalid={Boolean(telefono.trim()) && !telefonoValido(telefono)} placeholder="300 123 4567" />
         <label className="block text-sm font-semibold sm:col-span-2">
           Correo electrónico<span className="text-brand"> *</span>
           <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={input} placeholder="usuario@empresa.com" />

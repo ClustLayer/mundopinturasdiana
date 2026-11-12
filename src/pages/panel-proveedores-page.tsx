@@ -16,6 +16,7 @@ import {
 } from "../components/panel/kit"
 import { puedeAccion } from "../features/accesos/logic"
 import { useAccesos } from "../features/accesos/accesos-provider"
+import { PhoneInput } from "../components/panel/phone-input"
 import { telefonoValido } from "../features/clientes/logic"
 import { correoValido, TIPOS_DOCUMENTO } from "../features/proveedores/logic"
 import { toast } from "../features/en-desarrollo"
@@ -386,15 +387,7 @@ function ProveedorModal({
           <FieldLabel label="Cargo del contacto">
             <input value={contactoCargo} onChange={(e) => setContactoCargo(e.target.value)} placeholder="Ej. Gerente comercial" className={input} />
           </FieldLabel>
-          <FieldLabel label="Teléfono">
-            <input
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="Ej. +573001234567"
-              className={invalidTel ? inputInvalid : input}
-              aria-invalid={!!invalidTel}
-            />
-          </FieldLabel>
+          <PhoneInput label="Teléfono" value={telefono} onChange={setTelefono} invalid={Boolean(invalidTel)} placeholder="300 123 4567" />
           <FieldLabel label="Correo">
             <input
               type="email"

@@ -15,7 +15,9 @@ import {
 } from "../components/panel/kit"
 import { puedeAccion } from "../features/accesos/logic"
 import { useAccesos } from "../features/accesos/accesos-provider"
+import { PhoneInput } from "../components/panel/phone-input"
 import { TEXTO_HABEAS, correoValido, telefonoValido } from "../features/clientes/logic"
+import { TIPO_COLOR_PRESETS, contrastText } from "../lib/contrast-badge"
 import { toast } from "../features/en-desarrollo"
 import { useApp } from "../app/providers"
 import { api, mensajeDe } from "../shared/api"
@@ -34,6 +36,7 @@ type Cliente = {
   observaciones: string
   id_tipo_cliente: number
   tipo_nombre: string
+  tipo_color?: string
   consentimiento_datos: boolean
   fecha_consentimiento: string | null
   estado: boolean
@@ -51,6 +54,16 @@ type TipoCliente = {
   estado: boolean
   es_tipo_predeterminado: boolean
   version_fila: number
+  color?: string
+}
+
+function TipoClienteBadge({ nombre, color }: { nombre: string; color?: string }) {
+  const bg = color && /^#[0-9A-Fa-f]{6}$/.test(color) ? color : "#64748B"
+  return (
+    <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: bg, color: contrastText(bg) }}>
+      {nombre}
+    </span>
+  )
 }
 
 type Vista = "clientes" | "tipos" | "detalle"
@@ -209,7 +222,10 @@ export function PanelClientesPage() {
                       <td className="px-4 py-3 font-semibold">{c.nombre_completo}</td>
                       <td className="px-4 py-3">{c.numero_telefono}</td>
                       <td className="px-4 py-3">
-                        <span className="rounded-full bg-plum-soft px-2 py-0.5 text-xs font-bold text-plum">{c.tipo_nombre}</span>
+                        <TipoClienteBadge
+                          nombre={c.tipo_nombre}
+                          color={c.tipo_color ?? tipos.find((t) => t.id_tipo_cliente === c.id_tipo_cliente)?.color}
+                        />
                       </td>
                       <td className="px-4 py-3">{c.estado ? "Activo" : "Inactivo"}</td>
                       <td className="px-4 py-3">{c.consentimiento_datos ? "Sí" : "No"}</td>
@@ -442,15 +458,7 @@ function ClienteModal({
         <FieldLabel label="Apellido">
           <input value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder="Apellido (opcional)" className={input} />
         </FieldLabel>
-        <FieldLabel label="Teléfono" required>
-          <input
-            value={telefono}
-            onChange={(e) => setTelefono(e.target.value)}
-            placeholder="Ej. +573001234567"
-            className={invalidTel ? inputInvalid : input}
-            aria-invalid={invalidTel || undefined}
-          />
-        </FieldLabel>
+        <PhoneInput label="Teléfono" required value={telefono} onChange={setTelefono} invalid={invalidTel || !telefono.trim()} placeholder="300 123 4567" />
         <label className="mt-6 flex items-center gap-2 text-sm font-semibold sm:mt-8">
           <input type="checkbox" checked={whatsapp} onChange={(e) => setWhatsapp(e.target.checked)} />
           Tiene WhatsApp
@@ -593,6 +601,7 @@ function TipoModal({
   const [nombre, setNombre] = useState("")
   const [descripcion, setDescripcion] = useState("")
   const [estado, setEstado] = useState(true)
+  const [color, setColor] = useState("#64748B")
   const [version, setVersion] = useState(1)
   const [error, setError] = useState("")
   const { run, pending } = useDo()
@@ -604,6 +613,7 @@ function TipoModal({
       setNombre("")
       setDescripcion("")
       setEstado(true)
+      setColor("#64748B")
       setError("")
       return
     }
@@ -611,6 +621,7 @@ function TipoModal({
       setNombre(row.nombre)
       setDescripcion(row.descripcion)
       setEstado(row.estado)
+      setColor(row.color && /^#[0-9A-Fa-f]{6}$/.test(row.color) ? row.color : "#64748B")
       setVersion(row.version_fila)
     }
   }, [open, row, isNew])
@@ -623,7 +634,7 @@ function TipoModal({
       }
       const r = await api(isNew ? "/api/v1/clientes/tipos/" : `/api/v1/clientes/tipos/${(row as TipoCliente).id_tipo_cliente}/`, {
         method: isNew ? "POST" : "PATCH",
-        body: JSON.stringify({ nombre, descripcion, estado, version_fila: version }),
+        body: JSON.stringify({ nombre, descripcion, estado, color, version_fila: version }),
       })
       const msg = await mensajeDe(r)
       if (!r.ok) {
@@ -642,6 +653,22 @@ function TipoModal({
       </FieldLabel>
       <FieldLabel label="Descripción">
         <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Descripción opcional" className={`${input} min-h-20`} />
+      </FieldLabel>
+      <FieldLabel label="Color de identificación">
+        <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="size-10 cursor-pointer rounded-lg border-2 border-plum/15" aria-label="Selector de color" />
+          {TIPO_COLOR_PRESETS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className="size-8 rounded-full border-2 border-plum/15"
+              style={{ backgroundColor: p }}
+              aria-label={`Color ${p}`}
+              onClick={() => setColor(p)}
+            />
+          ))}
+          <TipoClienteBadge nombre="Vista previa" color={color} />
+        </div>
       </FieldLabel>
       {!isNew && (
         <FieldLabel label="Estado">
