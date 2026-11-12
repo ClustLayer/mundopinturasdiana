@@ -91,19 +91,19 @@ export function PanelCatalogoParamPage({ tipo }: { tipo: ParamTipo }) {
       <h1 className="font-display text-4xl font-extrabold text-plum">{meta.titulo}</h1>
       <p className="mt-2 max-w-2xl text-sm text-ink/65">{meta.blurb}</p>
 
-      <div className="relative mt-6 max-w-md">
-        <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-plum/50" aria-hidden />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={`Buscar ${meta.singular}…`}
-          className={`${input} !mt-0 pl-9`}
-        />
-      </div>
-
-      <div className="mt-4 flex justify-end">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <label className="relative min-w-0 flex-1">
+          <span className="sr-only">Buscar {meta.singular}</span>
+          <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-plum/50" aria-hidden />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder={`Buscar ${meta.singular}…`}
+            className={`${input} !mt-0 pl-9`}
+          />
+        </label>
         {puedeCrear && (
-          <button type="button" className={btnPrimary} onClick={() => setEdit("new")}>
+          <button type="button" className={`${btnPrimary} shrink-0`} onClick={() => setEdit("new")}>
             <Plus size={16} /> Nuevo
           </button>
         )}
