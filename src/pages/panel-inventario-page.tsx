@@ -80,16 +80,24 @@ export function PanelInventarioPage() {
         Todos los productos creados aparecen aquí. Registra entradas, ajustes y traslados; cada movimiento actualiza el saldo y deja historial.
       </p>
       <nav className="flex flex-wrap gap-2" aria-label="Secciones de inventario">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`rounded-xl px-4 py-2 text-sm font-bold ${tab === t.id ? "bg-plum text-white" : "bg-white border-2 border-plum/15 text-plum"}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
+        {tabs.map((t) => {
+          const active = tab === t.id
+          let cls = active ? "bg-plum text-white" : "bg-white border-2 border-plum/15 text-plum"
+          if (t.id === "entrada") {
+            cls = active
+              ? "bg-brand text-white shadow-[3px_3px_0_0_var(--color-plum)]"
+              : "border-2 border-brand/35 bg-white text-brand"
+          } else if (t.id === "ajuste" || t.id === "traslado") {
+            cls = active ? "bg-cyan-dark text-white" : "border-2 border-cyan/40 bg-white text-cyan-dark"
+          } else if (!active) {
+            cls = "bg-white border-2 border-plum/15 text-plum"
+          }
+          return (
+            <button key={t.id} type="button" className={`rounded-xl px-4 py-2 text-sm font-bold ${cls}`} onClick={() => setTab(t.id)}>
+              {t.label}
+            </button>
+          )
+        })}
       </nav>
       {tab === "stock" && <Stock />}
       {tab === "kardex" && <Kardex />}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { CalendarDays, Eye, EyeOff, Loader2, Pencil, Plus, Search } from "lucide-react"
+import { CalendarDays, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, Search } from "lucide-react"
 import {
   Empty,
   FieldLabel,
@@ -27,7 +27,7 @@ import {
 import { dt } from "../features/inventory/format"
 import { toast } from "../features/en-desarrollo"
 import { bogotaDay } from "../lib/schedule"
-import { api, mensajeDe } from "../shared/api"
+import { API_URL, api, mensajeDe } from "../shared/api"
 
 type Sede = { id_sede: number; nombre: string }
 
@@ -327,6 +327,9 @@ function EventoModal({
   const [descripcion, setDescripcion] = useState("")
   const [impactoTexto, setImpactoTexto] = useState("")
   const [imagenUrl, setImagenUrl] = useState("")
+  const [imagenTab, setImagenTab] = useState<"url" | "archivo">("url")
+  const [archivo, setArchivo] = useState<File | null>(null)
+  const [preview, setPreview] = useState("")
   const [visible, setVisible] = useState(false)
   const [clave, setClave] = useState(false)
   const [estado, setEstado] = useState(true)
@@ -348,6 +351,9 @@ function EventoModal({
       setDescripcion("")
       setImpactoTexto("")
       setImagenUrl("")
+      setImagenTab("url")
+      setArchivo(null)
+      setPreview("")
       setVisible(false)
       setClave(false)
       setEstado(true)
@@ -368,6 +374,8 @@ function EventoModal({
       setDescripcion(e.descripcion)
       setImpactoTexto((e as { impacto_operacion?: string }).impacto_operacion || "")
       setImagenUrl(e.imagen_url)
+      setPreview(e.imagen_url.startsWith("http") ? e.imagen_url : e.imagen_url ? `${API_URL}/api/v1/catalogo/media/${e.imagen_url}` : "")
+      setImagenTab(e.imagen_url && !e.imagen_url.startsWith("http") && !e.imagen_url.startsWith("https") ? "archivo" : "url")
       setVisible(e.visible_sitio)
       setClave(e.importancia_clave)
       setEstado(e.estado)
@@ -396,7 +404,7 @@ function EventoModal({
         id_sede: idSede ? Number(idSede) : null,
         descripcion,
         impacto_operacion: impactoTexto,
-        imagen_url: imagenUrl,
+        imagen_url: imagenTab === "url" ? imagenUrl : "",
         visible_sitio: visible,
         importancia_clave: clave,
         estado,
@@ -411,6 +419,16 @@ function EventoModal({
       if (!r.ok) {
         setError(msg || (isNew ? "No fue posible crear el evento. Intente nuevamente." : "No fue posible actualizar el evento. Intente nuevamente."))
         return
+      }
+      const eventoId = (body as { evento?: { id_evento: number }; id_evento?: number }).evento?.id_evento ?? (body as { id_evento?: number }).id_evento ?? id
+      if (archivo && imagenTab === "archivo" && eventoId) {
+        const data = new FormData()
+        data.append("imagen", archivo)
+        const up = await api(`/api/v1/eventos/${eventoId}/imagen/`, { method: "POST", body: data, headers: {} })
+        if (!up.ok) {
+          const upMsg = await mensajeDe(up)
+          toast(upMsg || "El evento se guardó, pero la imagen no pudo cargarse.")
+        }
       }
       toast(msg || (isNew ? "Evento creado correctamente." : "Evento actualizado correctamente."))
       onSaved()
@@ -454,9 +472,47 @@ function EventoModal({
         <FieldLabel label="Áreas afectadas">
           <input value={areas} onChange={(e) => setAreas(e.target.value)} placeholder="Ventas, inventario, mostrador…" className={input} />
         </FieldLabel>
-        <FieldLabel label="URL de imagen" className="sm:col-span-2">
-          <input value={imagenUrl} onChange={(e) => setImagenUrl(e.target.value)} placeholder="https://…" className={input} />
-        </FieldLabel>
+        <div className="sm:col-span-2">
+          <p className="text-sm font-semibold">Imagen del evento</p>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold ${imagenTab === "url" ? "bg-plum text-white" : "border-2 border-plum/15 text-plum"}`}
+              onClick={() => setImagenTab("url")}
+            >
+              Enlace URL
+            </button>
+            <button
+              type="button"
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold ${imagenTab === "archivo" ? "bg-plum text-white" : "border-2 border-plum/15 text-plum"}`}
+              onClick={() => setImagenTab("archivo")}
+            >
+              Subir archivo
+            </button>
+          </div>
+          {imagenTab === "url" ? (
+            <FieldLabel label="URL de imagen" className="mt-3">
+              <input value={imagenUrl} onChange={(e) => setImagenUrl(e.target.value)} placeholder="https://…" className={input} />
+            </FieldLabel>
+          ) : (
+            <label className="mt-3 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-cyan bg-cyan/10 px-4 py-6 text-center">
+              <ImagePlus size={24} className="text-cyan-dark" aria-hidden />
+              <span className="text-sm font-bold text-plum">Seleccionar imagen</span>
+              <span className="text-xs text-ink/60">JPG, JPEG, PNG o WEBP · máximo 5 MB</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null
+                  setArchivo(file)
+                  setPreview(file ? URL.createObjectURL(file) : preview)
+                }}
+              />
+            </label>
+          )}
+          {preview && <img src={preview} alt="Vista previa" className="mt-3 h-24 w-auto max-w-full rounded-xl object-cover" />}
+        </div>
         <FieldLabel label="Descripción" className="sm:col-span-2">
           <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} rows={3} placeholder="Detalle para el equipo y el sitio público" className={input} />
         </FieldLabel>
