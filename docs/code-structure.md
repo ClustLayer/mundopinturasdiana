@@ -32,3 +32,6 @@
 - `NoEncontrada` — página 404 con gotas de pintura animadas
 - `src/pages/panel-inventario-page.tsx` — existencias, kardex y movimientos (Épica 6)
 - Ruta `inventario` en `auth-secondary-pages.tsx`
+- `src/pages/panel-clientes-page.tsx` — directorio, tipos, detalle/Habeas Data (Épica 7)
+- `src/features/clientes/logic.ts` — validación e.164 y correo
+- Ruta `clientes` en `auth-secondary-pages.tsx`
