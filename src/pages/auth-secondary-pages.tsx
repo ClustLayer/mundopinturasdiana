@@ -8,6 +8,9 @@ import { useAccesos } from "../features/accesos/accesos-provider"
 import { useParams } from "react-router-dom"
 import { PanelAccesoDenegadoPage } from "./panel-acceso-denegado-page"
 import { PanelAuditoriaPage } from "./panel-auditoria-page"
+import { PanelCatalogoParamPage } from "./panel-catalogo-param-page"
+import { PanelProductosPage } from "./panel-productos-page"
+import { puedeModuloCatalogo } from "../features/accesos/catalogo-panel"
 import { PanelCuentaPage } from "./panel-cuenta-page"
 import { PanelPermisosPage } from "./panel-permisos-page"
 import { PanelSedesPage } from "./panel-sedes-page"
@@ -219,7 +222,7 @@ export function PanelModulePage() {
   const { puedeModulo, error: accesosError } = useAccesos()
   if (!sesionLista) return null
   if (!sesion) return <Navigate to="/login" replace />
-  if (modulo !== "cuenta" && !puedeModulo(modulo) && !accesosError) {
+  if (modulo !== "cuenta" && !puedeModulo(modulo) && !puedeModuloCatalogo(modulo, puedeModulo) && !accesosError) {
     return <PanelAccesoDenegadoPage />
   }
   if (modulo === "usuarios" && (puedeModulo("usuarios") || accesosError)) return <PanelUsuariosPage />
@@ -227,6 +230,12 @@ export function PanelModulePage() {
     return <PanelPermisosPage />
   }
   if (modulo === "sedes" && (puedeModulo("sedes") || accesosError)) return <PanelSedesPage />
+  if (modulo === "productos" && (puedeModulo("productos") || accesosError)) return <PanelProductosPage />
+  if (modulo === "categorias" && (puedeModuloCatalogo("categorias", puedeModulo) || accesosError))
+    return <PanelCatalogoParamPage tipo="categorias" />
+  if (modulo === "marcas" && (puedeModuloCatalogo("marcas", puedeModulo) || accesosError)) return <PanelCatalogoParamPage tipo="marcas" />
+  if (modulo === "tipos_producto" && (puedeModuloCatalogo("tipos_producto", puedeModulo) || accesosError))
+    return <PanelCatalogoParamPage tipo="tipos" />
   if (modulo === "auditoria" && (puedeModulo("auditoria") || accesosError)) return <PanelAuditoriaPage />
   if (modulo === "cuenta") return <PanelCuentaPage />
   return (
@@ -242,11 +251,36 @@ export function PanelModulePage() {
 
 export function NoEncontrada() {
   return (
-    <main className="p-10">
-      <h1 className="font-display text-4xl font-extrabold text-plum">Página no encontrada</h1>
-      <Link to="/" className="mt-4 inline-block font-semibold text-brand">
-        Volver al inicio
-      </Link>
+    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-paper px-6 py-16">
+      <style>{`
+        @keyframes drip { 0% { transform: translateY(-20vh) scaleY(.6); opacity: 0 } 20% { opacity: .9 } 100% { transform: translateY(110vh) scaleY(1); opacity: .15 } }
+        @keyframes blob { 0%,100% { transform: translate3d(0,0,0) rotate(0deg) } 50% { transform: translate3d(12px,-18px,0) rotate(8deg) } }
+      `}</style>
+      {["#E11D74", "#00ACC1", "#FFC93C", "#4A154B", "#E11D74"].map((color, i) => (
+        <span
+          key={color + i}
+          aria-hidden
+          className="pointer-events-none absolute top-0 w-3 rounded-full"
+          style={{
+            left: `${12 + i * 16}%`,
+            height: `${80 + i * 18}px`,
+            background: color,
+            animation: `drip ${6 + i}s ${i * 0.6}s ease-in infinite`,
+            filter: "blur(0.2px)",
+          }}
+        />
+      ))}
+      <div className="pointer-events-none absolute -left-16 top-10 size-64 rounded-full bg-brand/20 blur-2xl" style={{ animation: "blob 7s ease-in-out infinite" }} />
+      <div className="pointer-events-none absolute -right-10 bottom-8 size-72 rounded-full bg-cyan/30 blur-2xl" style={{ animation: "blob 9s ease-in-out infinite" }} />
+      <section className="relative max-w-xl rounded-[2rem] border-2 border-plum bg-white/90 p-10 text-center shadow-[10px_10px_0_0_#E11D74] backdrop-blur">
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-cyan-dark">Mundo Pinturas Diana</p>
+        <p className="mt-4 font-display text-[7rem] font-extrabold leading-none text-plum">404</p>
+        <h1 className="mt-2 font-display text-3xl font-extrabold text-plum">Este color no está en el catálogo</h1>
+        <p className="mt-3 text-ink/70">La página que buscas se movió o nunca se mezcló. Vuelve al inicio y seguimos pintando Cali.</p>
+        <Link to="/" className="mt-8 inline-flex rounded-full bg-brand px-7 py-3.5 font-bold text-white shadow-[4px_4px_0_0_#4A154B] transition hover:-translate-y-0.5">
+          Volver al inicio
+        </Link>
+      </section>
     </main>
   )
 }

@@ -34,3 +34,10 @@ Consumo de `/api/v1/roles-permisos/*` y `/api/v1/auth/accesos-panel`. Mensajes d
 - Bitácora: consumo de `GET /api/v1/auditoria/bitacora/` y `.../usuarios/`; debounce 300 ms en búsqueda de usuario.
 - HU 96–97: diálogos modales accesibles; manejo 403/404/409 según mensajes del backend.
 - QA: `docs/qa-sprint1-closing.md`.
+
+## Épica 5
+**Validated:** 2026-11-11
+
+- Panel de productos consume `/api/v1/catalogo/productos/`.
+- Parámetros en `/api/v1/catalogo/parametros/`.
+- 404 accesible en rutas no registradas.

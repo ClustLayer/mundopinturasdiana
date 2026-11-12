@@ -105,13 +105,13 @@ export function LoginForm() {
         </p>
       )}
       <label className="mt-7 block text-sm font-semibold">
-        Correo electrónico
-        <input name="email" type="email" value={email || prefill} onChange={(e) => { setEmail(e.target.value); setPrefill("") }} autoComplete="username" required className={field} />
+        Correo electrónico<span className="text-brand"> *</span>
+        <input name="email" type="email" value={email || prefill} onChange={(e) => { setEmail(e.target.value); setPrefill("") }} autoComplete="username" required placeholder="usuario@empresa.com" className={field} />
       </label>
       <label className="mt-5 block text-sm font-semibold">
-        Contraseña
+        Contraseña<span className="text-brand"> *</span>
         <span className="relative block">
-          <input name="password" type={show ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required className={`${field} pr-12`} />
+          <input name="password" type={show ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required placeholder="Ingrese su contraseña" className={`${field} pr-12`} />
           <button type="button" title={show ? "Ocultar contraseña" : "Mostrar contraseña"} onClick={() => setShow((s) => !s)} aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-plum/70 hover:bg-plum-soft">
             {show ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
