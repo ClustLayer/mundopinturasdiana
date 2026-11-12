@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowRight, MessageCircle, Palette, ShoppingBag, Send, MapPin, Brush, Building2, Droplets, Layers, Paintbrush, Sun } from "lucide-react"
-import { getBestSellerIds, getBranches, getProducts, getPromotions, getPublicEvents, getSiteImages, getSiteSettings, serverToday, type PublicProduct } from "../lib/public-data"
+import { fetchPublicEvents, getBestSellerIds, getBranches, getProducts, getPromotions, getSiteImages, getSiteSettings, serverToday, type PublicEvent, type PublicProduct } from "../lib/public-data"
 import { Reveal } from "../components/ui/reveal"
 import { Blob, BrushUnderline, Squiggle, Star, Sticker } from "../components/ui/splash"
 import { ProductCard } from "../components/product-card"
@@ -31,8 +31,14 @@ export function HomePage() {
   const imageMural = '/brand/pintando-ciudad.jpeg'
   const bestIds = getBestSellerIds()
   const promotions = getPromotions()
-  const events = getPublicEvents()
+  const [events, setEvents] = useState<PublicEvent[]>([])
   const today = serverToday()
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      void fetchPublicEvents().then(setEvents)
+    }, 0)
+    return () => window.clearTimeout(t)
+  }, [])
   const flagship = products.filter((p) => p.featured).slice(0, 8)
   const words = ['Vinilos DECO', 'Interiores', 'Exteriores', 'Esmaltes', 'Lacas', 'Pintura de tráfico', 'Murales', 'Asesoría de color']
 
