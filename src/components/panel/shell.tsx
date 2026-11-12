@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
+  Award,
   BarChart3,
   Boxes,
   CalendarCheck,
@@ -20,6 +21,7 @@ import {
   PanelLeftOpen,
   Receipt,
   ReceiptText,
+  Shapes,
   ShieldCheck,
   ShoppingBag,
   Store,
@@ -56,6 +58,8 @@ const ICONS: Record<string, LucideIcon> = {
   facturacion: FileCheck2,
   conceptos: ReceiptText,
   categorias: Tags,
+  marcas: Award,
+  tipos_producto: Shapes,
   promociones: Gift,
   auditoria: History,
   analitica: BarChart3,
@@ -73,6 +77,8 @@ const ORDER = [
   "conceptos",
   "productos",
   "categorias",
+  "marcas",
+  "tipos_producto",
   "inventario",
   "clientes",
   "proveedores",
@@ -91,6 +97,8 @@ const LABELS: Record<string, string> = {
   permisos: "Permisos",
   sedes: "Sedes",
   categorias: "Categorías de producto",
+  marcas: "Marcas",
+  tipos_producto: "Tipos de producto",
   productos: "Productos",
   inventario: "Inventario",
   clientes: "Clientes",

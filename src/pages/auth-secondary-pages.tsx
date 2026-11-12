@@ -8,7 +8,9 @@ import { useAccesos } from "../features/accesos/accesos-provider"
 import { useParams } from "react-router-dom"
 import { PanelAccesoDenegadoPage } from "./panel-acceso-denegado-page"
 import { PanelAuditoriaPage } from "./panel-auditoria-page"
-import { PanelParametrosPage, PanelProductosPage } from "./panel-productos-page"
+import { PanelCatalogoParamPage } from "./panel-catalogo-param-page"
+import { PanelProductosPage } from "./panel-productos-page"
+import { puedeModuloCatalogo } from "../features/accesos/catalogo-panel"
 import { PanelCuentaPage } from "./panel-cuenta-page"
 import { PanelPermisosPage } from "./panel-permisos-page"
 import { PanelSedesPage } from "./panel-sedes-page"
@@ -220,7 +222,7 @@ export function PanelModulePage() {
   const { puedeModulo, error: accesosError } = useAccesos()
   if (!sesionLista) return null
   if (!sesion) return <Navigate to="/login" replace />
-  if (modulo !== "cuenta" && !puedeModulo(modulo) && !accesosError) {
+  if (modulo !== "cuenta" && !puedeModulo(modulo) && !puedeModuloCatalogo(modulo, puedeModulo) && !accesosError) {
     return <PanelAccesoDenegadoPage />
   }
   if (modulo === "usuarios" && (puedeModulo("usuarios") || accesosError)) return <PanelUsuariosPage />
@@ -229,7 +231,11 @@ export function PanelModulePage() {
   }
   if (modulo === "sedes" && (puedeModulo("sedes") || accesosError)) return <PanelSedesPage />
   if (modulo === "productos" && (puedeModulo("productos") || accesosError)) return <PanelProductosPage />
-  if (modulo === "categorias" && (puedeModulo("categorias") || puedeModulo("productos") || accesosError)) return <PanelParametrosPage />
+  if (modulo === "categorias" && (puedeModuloCatalogo("categorias", puedeModulo) || accesosError))
+    return <PanelCatalogoParamPage tipo="categorias" />
+  if (modulo === "marcas" && (puedeModuloCatalogo("marcas", puedeModulo) || accesosError)) return <PanelCatalogoParamPage tipo="marcas" />
+  if (modulo === "tipos_producto" && (puedeModuloCatalogo("tipos_producto", puedeModulo) || accesosError))
+    return <PanelCatalogoParamPage tipo="tipos" />
   if (modulo === "auditoria" && (puedeModulo("auditoria") || accesosError)) return <PanelAuditoriaPage />
   if (modulo === "cuenta") return <PanelCuentaPage />
   return (
