@@ -96,6 +96,15 @@ const btn = "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.
 export const btnPrimary = `${btn} bg-brand text-white shadow-[3px_3px_0_0_var(--color-plum)] hover:-translate-y-0.5 hover:bg-brand-dark`
 export const btnGhost = `${btn} border-2 border-plum/20 text-plum hover:bg-plum-soft`
 
+export function FormAlert({ message, id }: { message: string; id?: string }) {
+  if (!message) return null
+  return (
+    <p role="alert" id={id} className="rounded-xl border-2 border-brand bg-brand/5 p-3 text-sm font-medium text-brand-dark">
+      {message}
+    </p>
+  )
+}
+
 export function FieldLabel({
   label,
   required,
@@ -330,6 +339,8 @@ export function ConflictDialog({
 
 export const input =
   "mt-1.5 w-full rounded-xl border-2 border-plum/15 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-cyan disabled:bg-ink/5"
+
+export const inputInvalid = `${input} !border-brand ring-2 ring-brand/25`
 
 export function Badge({ value }: { value: string }) {
   const tono =

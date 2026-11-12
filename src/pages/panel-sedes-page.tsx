@@ -278,19 +278,19 @@ function SedeModal({ open, id, onClose, onSaved }: { open: boolean; id: number |
   return (
     <Modal open={open} onClose={onClose} title={isNew ? "Crear sede" : "Editar sede"} wide>
       <FieldLabel label="Nombre" required tip="Nombre comercial de la sede">
-        <input value={nombre} onChange={(e) => setNombre(e.target.value)} className={input} maxLength={255} data-tip="Nombre comercial de la sede" />
+        <input value={nombre} onChange={(e) => setNombre(e.target.value)} className={input} maxLength={255} placeholder="Ej. Sede Cali Norte" data-tip="Nombre comercial de la sede" />
       </FieldLabel>
       <FieldLabel label="Dirección" required tip="Dirección física para clientes y mapa">
-        <input value={direccion} onChange={(e) => setDireccion(e.target.value)} className={input} maxLength={255} />
+        <input value={direccion} onChange={(e) => setDireccion(e.target.value)} className={input} maxLength={255} placeholder="Calle, número, barrio" />
       </FieldLabel>
       <FieldLabel label="Teléfono" required tip="Formato internacional, ej. +573001234567">
-        <input value={telefono} onChange={(e) => setTelefono(e.target.value)} className={input} />
+        <input value={telefono} onChange={(e) => setTelefono(e.target.value)} className={input} placeholder="+573001234567" />
       </FieldLabel>
       <FieldLabel label="WhatsApp (solo dígitos con indicativo)" tip="Contacto para pedidos web de esta sede">
-        <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={input} />
+        <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={input} placeholder="573001234567" />
       </FieldLabel>
       <FieldLabel label="Ciudad" tip="Ciudad mostrada en el sitio público">
-        <input value={ciudad} onChange={(e) => setCiudad(e.target.value)} className={input} />
+        <input value={ciudad} onChange={(e) => setCiudad(e.target.value)} className={input} placeholder="Ej. Cali" />
       </FieldLabel>
       <FieldLabel
         label="Ubicación en Google Maps (enlace o enlace de inserción)"

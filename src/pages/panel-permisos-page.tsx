@@ -255,12 +255,12 @@ function RolModal({ open, id, onClose, onSaved }: { open: boolean; id: number | 
     <>
       <Modal open={open} onClose={onClose} title={isNew ? "Crear rol" : "Editar rol"}>
         <label className="block text-sm font-semibold">
-          Nombre
-          <input value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={30} disabled={!isNew && esBase} className={input} required />
+          Nombre<span className="text-brand"> *</span>
+          <input value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={30} disabled={!isNew && esBase} className={input} required placeholder="Ej. Vendedor" />
         </label>
         <label className="block text-sm font-semibold">
           Descripción
-          <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className={input} rows={3} />
+          <textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className={input} rows={3} placeholder="Uso previsto del rol en el sistema" />
         </label>
         {!isNew && (
           <label className="mt-3 flex items-center gap-2 text-sm font-semibold">

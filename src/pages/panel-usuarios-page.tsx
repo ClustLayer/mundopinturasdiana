@@ -551,28 +551,28 @@ function UsuarioFormModal({
       >
         <label className="block text-sm font-semibold">
           Nombre<span className="text-brand"> *</span>
-          <input required value={nombre} onChange={(e) => setNombre(e.target.value)} className={input} />
+          <input required value={nombre} onChange={(e) => setNombre(e.target.value)} className={input} placeholder="Ej. Ana" />
         </label>
         <label className="block text-sm font-semibold">
           Apellido<span className="text-brand"> *</span>
-          <input required value={apellido} onChange={(e) => setApellido(e.target.value)} className={input} />
+          <input required value={apellido} onChange={(e) => setApellido(e.target.value)} className={input} placeholder="Ej. García" />
         </label>
         <label className="block text-sm font-semibold">
           Documento<span className="text-brand"> *</span>
-          <input required value={documento} onChange={(e) => setDocumento(e.target.value)} className={input} />
+          <input required value={documento} onChange={(e) => setDocumento(e.target.value)} className={input} placeholder="Ej. 1001234567" />
         </label>
         <label className="block text-sm font-semibold">
           Teléfono
-          <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className={input} />
+          <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className={input} placeholder="+573001234567" />
         </label>
         <label className="block text-sm font-semibold sm:col-span-2">
           Correo electrónico<span className="text-brand"> *</span>
-          <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={input} />
+          <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={input} placeholder="usuario@empresa.com" />
         </label>
         <label className="block text-sm font-semibold">
           Rol<span className="text-brand"> *</span>
           <select required value={idRol} onChange={(e) => setIdRol(e.target.value)} className={input}>
-            <option value="">—</option>
+            <option value="">Seleccione…</option>
             {roles.map((r) => (
               <option key={r.id_rol} value={String(r.id_rol)}>{r.nombre}</option>
             ))}
@@ -581,7 +581,7 @@ function UsuarioFormModal({
         <label className="block text-sm font-semibold">
           Sede asignada<span className="text-brand"> *</span>
           <select required value={idSede} onChange={(e) => setIdSede(e.target.value)} className={input}>
-            <option value="">—</option>
+            <option value="">Seleccione…</option>
             {sedes.map((s) => (
               <option key={s.id_sede} value={String(s.id_sede)}>{s.nombre}</option>
             ))}

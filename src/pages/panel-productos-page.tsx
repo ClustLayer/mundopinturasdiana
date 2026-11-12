@@ -3,11 +3,14 @@ import { History, Loader2, Pencil, Plus, Power, Search, Upload } from "lucide-re
 import {
   Confirm,
   Empty,
+  FieldLabel,
+  FormAlert,
   Modal,
   Pager,
   btnGhost,
   btnPrimary,
   input,
+  inputInvalid,
   useDebounced,
   useDo,
 } from "../components/panel/kit"
@@ -301,16 +304,56 @@ export function PanelProductosPage() {
   )
 }
 
-function Select({ label, value, onChange, options, todos }: { label: string; value: string; onChange: (v: string) => void; options: { v: string; l: string }[]; todos?: boolean }) {
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+  todos,
+  required,
+  invalid,
+  emptyLabel = "Seleccione…",
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: { v: string; l: string }[]
+  todos?: boolean
+  required?: boolean
+  invalid?: boolean
+  emptyLabel?: string
+}) {
   return (
-    <label className="text-sm font-semibold">{label}
-      <select className={input} value={value} onChange={(e) => onChange(e.target.value)}>
-        <option value="">{todos ? "Todos" : "Todos"}</option>
-        {options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
+    <FieldLabel label={label} required={required}>
+      <select
+        className={invalid ? inputInvalid : input}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        aria-invalid={invalid}
+      >
+        <option value="">{todos ? "Todos" : emptyLabel}</option>
+        {options.map((o) => (
+          <option key={o.v} value={o.v}>
+            {o.l}
+          </option>
+        ))}
       </select>
-    </label>
+    </FieldLabel>
   )
 }
+
+const OBLIG_PRODUCTO: { key: keyof typeof vacio; label: string }[] = [
+  { key: "codigo_producto", label: "Código" },
+  { key: "nombre", label: "Nombre" },
+  { key: "id_categoria", label: "Categoría" },
+  { key: "id_marca", label: "Marca" },
+  { key: "id_tipo_producto", label: "Tipo" },
+  { key: "unidad_medida", label: "Unidad de medida" },
+  { key: "precio_compra", label: "Precio de compra" },
+  { key: "precio_venta", label: "Precio de venta" },
+  { key: "iva_porcentaje", label: "IVA" },
+  { key: "stock_minimo", label: "Stock mínimo" },
+]
 
 function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; catalogos: { categorias: Opt[]; marcas: Opt[]; tipos: Opt[]; unidades: string[] }; onClose: () => void; onSaved: () => void }) {
   const [f, setF] = useState(vacio)
@@ -318,6 +361,8 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
   const [archivo, setArchivo] = useState<File | null>(null)
   const [preview, setPreview] = useState("")
   const [progreso, setProgreso] = useState(0)
+  const [formError, setFormError] = useState("")
+  const [invalid, setInvalid] = useState<Set<string>>(new Set())
   const { run, pending } = useDo()
   const isNew = id === null
 
@@ -346,13 +391,26 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
     })
   }, [id])
 
+  const validar = () => {
+    const next = new Set<string>()
+    for (const { key } of OBLIG_PRODUCTO) {
+      const v = f[key]
+      if (String(v).trim() === "") next.add(key)
+    }
+    if (next.size) {
+      const faltan = OBLIG_PRODUCTO.filter(({ key }) => next.has(key)).map(({ label }) => label)
+      setInvalid(next)
+      setFormError(`Todos los campos obligatorios deben ser diligenciados. Faltan: ${faltan.join(", ")}.`)
+      return false
+    }
+    setInvalid(new Set())
+    setFormError("")
+    return true
+  }
+
   const guardar = () =>
     run(async () => {
-      const oblig = [f.codigo_producto, f.nombre, f.id_categoria, f.id_marca, f.id_tipo_producto, f.unidad_medida, f.precio_compra, f.precio_venta, f.iva_porcentaje, f.stock_minimo]
-      if (oblig.some((v) => String(v).trim() === "")) {
-        toast("Todos los campos obligatorios deben ser diligenciados.")
-        return
-      }
+      if (!validar()) return
       if (Number(f.precio_venta) < Number(f.precio_compra) && !window.confirm("El precio de venta es menor al precio de compra. ¿Desea continuar?")) return
       let motivo = ""
       const body = {
@@ -388,7 +446,9 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
       })
       const msg = await mensajeDe(r)
       if (!r.ok) {
-        toast(msg || (isNew ? "No fue posible crear el producto. Intente nuevamente." : "No fue posible actualizar el producto. Intente nuevamente."))
+        const fallo = msg || (isNew ? "No fue posible crear el producto. Intente nuevamente." : "No fue posible actualizar el producto. Intente nuevamente.")
+        setFormError(fallo)
+        toast(fallo)
         return
       }
       const creado = (await r.json()) as { producto?: { id_producto: number } }
@@ -398,31 +458,43 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
       onSaved()
     })
 
+  const sinCatalogo =
+    catalogos.categorias.length === 0 || catalogos.marcas.length === 0 || catalogos.tipos.length === 0
+
   return (
     <Modal open title={isNew ? "Crear producto" : "Editar producto"} onClose={onClose} wide>
+      <FormAlert message={formError} />
+      {sinCatalogo && (
+        <p className="mb-3 rounded-xl border-2 border-plum/20 bg-plum-soft p-3 text-sm text-plum">
+          Cree al menos una categoría, una marca y un tipo activos en el menú del catálogo antes de guardar el producto.
+        </p>
+      )}
       <div className="grid gap-3 md:grid-cols-2">
-        <Field label="Código" value={f.codigo_producto} onChange={(v) => setF({ ...f, codigo_producto: v })} />
-        <Field label="Código de barras" value={f.codigo_barras} onChange={(v) => setF({ ...f, codigo_barras: v })} />
-        <Field label="Nombre" value={f.nombre} onChange={(v) => setF({ ...f, nombre: v })} />
-        <label className="text-sm font-semibold md:col-span-2">Descripción<textarea className={input} rows={2} value={f.descripcion} onChange={(e) => setF({ ...f, descripcion: e.target.value })} /></label>
-        <Select label="Categoría" value={f.id_categoria} onChange={(v) => setF({ ...f, id_categoria: v })} options={catalogos.categorias.map((c) => ({ v: String(c.id_categoria), l: c.nombre }))} />
-        <Select label="Marca" value={f.id_marca} onChange={(v) => setF({ ...f, id_marca: v })} options={catalogos.marcas.map((c) => ({ v: String(c.id_marca), l: c.nombre }))} />
-        <Select label="Tipo" value={f.id_tipo_producto} onChange={(v) => setF({ ...f, id_tipo_producto: v })} options={catalogos.tipos.map((c) => ({ v: String(c.id_tipo_producto), l: c.nombre }))} />
-        <Select label="Unidad de medida" value={f.unidad_medida} onChange={(v) => setF({ ...f, unidad_medida: v })} options={catalogos.unidades.map((u) => ({ v: u, l: u }))} />
-        <Field label="Precio de compra" value={f.precio_compra} onChange={(v) => setF({ ...f, precio_compra: v })} />
-        <Field label="Precio de venta" value={f.precio_venta} onChange={(v) => setF({ ...f, precio_venta: v })} />
-        <Field label="IVA" value={f.iva_porcentaje} onChange={(v) => setF({ ...f, iva_porcentaje: v })} />
-        <Field label="Stock mínimo" value={f.stock_minimo} onChange={(v) => setF({ ...f, stock_minimo: v })} />
+        <Field label="Código" required placeholder="Ej. VIN-001" invalid={invalid.has("codigo_producto")} value={f.codigo_producto} onChange={(v) => setF({ ...f, codigo_producto: v })} />
+        <Field label="Código de barras" placeholder="Ej. 7701234567890" value={f.codigo_barras} onChange={(v) => setF({ ...f, codigo_barras: v })} />
+        <Field label="Nombre" required placeholder="Ej. Vinilo mate blanco 1 L" invalid={invalid.has("nombre")} value={f.nombre} onChange={(v) => setF({ ...f, nombre: v })} />
+        <FieldLabel label="Descripción" className="md:col-span-2">
+          <textarea className={input} rows={2} value={f.descripcion} onChange={(e) => setF({ ...f, descripcion: e.target.value })} placeholder="Uso, acabado, presentación…" />
+        </FieldLabel>
+        <Select required invalid={invalid.has("id_categoria")} label="Categoría" value={f.id_categoria} onChange={(v) => setF({ ...f, id_categoria: v })} options={catalogos.categorias.map((c) => ({ v: String(c.id_categoria), l: c.nombre }))} />
+        <Select required invalid={invalid.has("id_marca")} label="Marca" value={f.id_marca} onChange={(v) => setF({ ...f, id_marca: v })} options={catalogos.marcas.map((c) => ({ v: String(c.id_marca), l: c.nombre }))} />
+        <Select required invalid={invalid.has("id_tipo_producto")} label="Tipo" value={f.id_tipo_producto} onChange={(v) => setF({ ...f, id_tipo_producto: v })} options={catalogos.tipos.map((c) => ({ v: String(c.id_tipo_producto), l: c.nombre }))} />
+        <Select required invalid={invalid.has("unidad_medida")} label="Unidad de medida" value={f.unidad_medida} onChange={(v) => setF({ ...f, unidad_medida: v })} options={catalogos.unidades.map((u) => ({ v: u, l: u }))} emptyLabel="UND" />
+        <Field required invalid={invalid.has("precio_compra")} label="Precio de compra" placeholder="0.00" value={f.precio_compra} onChange={(v) => setF({ ...f, precio_compra: v })} />
+        <Field required invalid={invalid.has("precio_venta")} label="Precio de venta" placeholder="0.00" value={f.precio_venta} onChange={(v) => setF({ ...f, precio_venta: v })} />
+        <Field required invalid={invalid.has("iva_porcentaje")} label="IVA (%)" placeholder="19" value={f.iva_porcentaje} onChange={(v) => setF({ ...f, iva_porcentaje: v })} />
+        <Field required invalid={invalid.has("stock_minimo")} label="Stock mínimo" placeholder="0" value={f.stock_minimo} onChange={(v) => setF({ ...f, stock_minimo: v })} />
         <label className="flex items-center gap-2 text-sm font-semibold md:col-span-2">
           <input type="checkbox" checked={f.inventario_habilitado} onChange={(e) => setF({ ...f, inventario_habilitado: e.target.checked })} /> Inventario habilitado
+          <span className="text-brand"> *</span>
         </label>
-        <label className="text-sm font-semibold md:col-span-2">Imagen
+        <FieldLabel label="Imagen" className="md:col-span-2" tip="JPG, JPEG, PNG o WEBP, máximo 5 MB">
           <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-1 block w-full text-sm" onChange={(e) => {
             const file = e.target.files?.[0] ?? null
             setArchivo(file)
             setPreview(file ? URL.createObjectURL(file) : preview)
           }} />
-        </label>
+        </FieldLabel>
         {preview && <img src={preview} alt="Vista previa" className="h-24 w-24 rounded-xl object-cover" />}
         {progreso > 0 && <progress className="w-full" value={progreso} max={100} aria-label="Progreso de carga" />}
       </div>
@@ -434,8 +506,32 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
   )
 }
 
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return <label className="text-sm font-semibold">{label}<input className={input} value={value} onChange={(e) => onChange(e.target.value)} /></label>
+function Field({
+  label,
+  value,
+  onChange,
+  required,
+  placeholder,
+  invalid,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  required?: boolean
+  placeholder?: string
+  invalid?: boolean
+}) {
+  return (
+    <FieldLabel label={label} required={required}>
+      <input
+        className={invalid ? inputInvalid : input}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        aria-invalid={invalid}
+      />
+    </FieldLabel>
+  )
 }
 
 function subir(id: number, file: File, setProgreso: (n: number) => void) {
@@ -555,96 +651,6 @@ function ImportarModal({ onClose }: { onClose: () => void }) {
           setReporte(body)
           toast(body.mensaje)
         })}>Validar y cargar</button>
-      </div>
-    </Modal>
-  )
-}
-
-type Param = { id: number; nombre: string; descripcion: string; estado: boolean; version_fila: number; afecta_venta_diaria?: boolean; es_base?: boolean }
-
-export function PanelParametrosPage() {
-  const [tab, setTab] = useState<"categorias" | "marcas" | "tipos">("categorias")
-  const [items, setItems] = useState<Param[]>([])
-  const [edit, setEdit] = useState<Param | "new" | null>(null)
-  const { run, pending } = useDo()
-  const cargar = useCallback(async () => {
-    const r = await api(`/api/v1/catalogo/parametros/${tab}/`)
-    if (!r.ok) return
-    setItems(((await r.json()) as { items: Param[] }).items)
-  }, [tab])
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
-    void cargar()
-  }, [cargar])
-  return (
-    <section className="mx-auto max-w-4xl">
-      <p className="font-mono text-xs uppercase tracking-widest text-cyan-dark">Catálogo de productos</p>
-      <h1 className="font-display text-4xl font-extrabold text-plum">Parámetros de producto</h1>
-      <nav className="my-4 flex gap-2" aria-label="Parámetros">
-        {(["categorias", "marcas", "tipos"] as const).map((t) => (
-          <button key={t} type="button" className={`rounded-xl px-4 py-2 text-sm font-bold ${tab === t ? "bg-plum text-white" : "bg-white"}`} onClick={() => setTab(t)}>
-            {t === "categorias" ? "Categorías" : t === "marcas" ? "Marcas" : "Tipos"}
-          </button>
-        ))}
-        <button type="button" className={btnPrimary} onClick={() => setEdit("new")}><Plus size={16} /> Nuevo</button>
-      </nav>
-      {items.length === 0 ? <Empty text="No hay registros." /> : (
-        <ul className="divide-y rounded-2xl border-2 border-plum/10 bg-white">
-          {items.map((it) => (
-            <li key={it.id} className="flex items-center justify-between px-4 py-3">
-              <div><p className="font-semibold">{it.nombre}</p><p className="text-sm text-ink/60">{it.descripcion || "—"} · {it.estado ? "Activo" : "Inactivo"}</p></div>
-              <button type="button" className="rounded-lg p-2" aria-label={`Editar ${it.nombre}`} onClick={() => setEdit(it)}><Pencil size={16} /></button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {edit && (
-        <ParamForm
-          tipo={tab}
-          row={edit === "new" ? null : edit}
-          pending={pending}
-          onClose={() => setEdit(null)}
-          onSave={(payload) => void run(async () => {
-            const r = await api(edit === "new" ? `/api/v1/catalogo/parametros/${tab}/` : `/api/v1/catalogo/parametros/${tab}/${(edit as Param).id}/`, {
-              method: edit === "new" ? "POST" : "PATCH",
-              body: JSON.stringify(payload),
-            })
-            const msg = await mensajeDe(r)
-            if (!r.ok) {
-              toast(msg || (edit === "new" ? "No fue posible guardar el registro. Intente nuevamente." : "No fue posible actualizar el registro. Intente nuevamente."))
-              return
-            }
-            toast(msg)
-            setEdit(null)
-            void cargar()
-          })}
-        />
-      )}
-    </section>
-  )
-}
-
-function ParamForm({ tipo, row, pending, onClose, onSave }: { tipo: string; row: Param | null; pending: boolean; onClose: () => void; onSave: (p: Record<string, unknown>) => void }) {
-  const [nombre, setNombre] = useState(row?.nombre ?? "")
-  const [descripcion, setDescripcion] = useState(row?.descripcion ?? "")
-  const [estado, setEstado] = useState(row?.estado ?? true)
-  const [afecta, setAfecta] = useState(row?.afecta_venta_diaria ?? true)
-  return (
-    <Modal open title={row ? "Editar" : "Nuevo"} onClose={onClose}>
-      <label className="text-sm font-semibold">Nombre<input className={input} value={nombre} onChange={(e) => setNombre(e.target.value)} /></label>
-      <label className="mt-3 block text-sm font-semibold">Descripción<textarea className={input} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} /></label>
-      {tipo === "tipos" && <label className="mt-3 flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={afecta} onChange={(e) => setAfecta(e.target.checked)} /> Afecta venta diaria</label>}
-      {row && <label className="mt-3 flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={estado} onChange={(e) => setEstado(e.target.checked)} /> Activo</label>}
-      <div className="mt-6 flex justify-end gap-3">
-        <button type="button" className={btnGhost} onClick={onClose}>Cancelar</button>
-        <button type="button" className={btnPrimary} disabled={pending} onClick={() => {
-          if (!nombre.trim()) {
-            toast("El nombre es obligatorio.")
-            return
-          }
-          if (row && row.estado && !estado && !window.confirm("¿Está seguro de que desea cambiar el estado de este producto?")) return
-          onSave({ nombre, descripcion, estado, afecta_venta_diaria: afecta, version_fila: row?.version_fila ?? 1 })
-        }}>Guardar</button>
       </div>
     </Modal>
   )
