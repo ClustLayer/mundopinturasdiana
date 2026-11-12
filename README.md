@@ -5,7 +5,7 @@
 [![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA-green)](https://www.w3.org/WAI/WCAG21/quickref/)
 [![License](https://img.shields.io/badge/license-Privada-red)](LICENSE)
 
-**Versión del portal:** 1.2.3 (Sprint 2 · Épica 7 — directorio de clientes y Habeas Data; esquema `MAJOR.SPRINT.EPIC_IN_SPRINT`: Épica 5 = 1.2.1, Épica 6 = 1.2.2).
+**Versión del portal:** 1.2.5 (Sprint 2 · Épica 14 — proveedores e integración inventario; Épica 12 = 1.2.4; esquema `MAJOR.SPRINT.EPIC_IN_SPRINT`).
 
 Portal de produccion del backoffice. La demo visual permanece en `MundoPinturasDiana-Demo` y no se modifica. Este proyecto reproduce la pantalla de acceso y deja el resto de modulos enrutados con el aviso "Funcionalidad en desarrollo".
 

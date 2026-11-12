@@ -54,3 +54,15 @@ Consumo de `/api/v1/roles-permisos/*` y `/api/v1/auth/accesos-panel`. Mensajes d
 - Clientes consume `/api/v1/clientes/`, `/tipos/`, `/{id}/historial/`.
 - Duplicado de teléfono y concurrencia 409 reflejados en UI modal.
 - QA: `docs/qa-epic-7.md`.
+
+## Épica 12
+**Validated:** 2026-11-12
+
+- Eventos consume `/api/v1/eventos/`; home consume `/api/v1/eventos/publicos/`.
+- QA: `docs/qa-epic-12.md`.
+
+## Épica 14
+**Validated:** 2026-11-12
+
+- Proveedores consume `/api/v1/proveedores/`; inventario envía `id_proveedor`.
+- QA: `docs/qa-epic-14.md`.

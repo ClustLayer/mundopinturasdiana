@@ -94,3 +94,19 @@
 - Panel demo-first: listado, filtros, WhatsApp, modales, tipos y detalle con métricas.
 - Validaciones cliente: `features/clientes/logic.ts` + tests Vitest.
 - `pnpm run calidad` en verde.
+
+## Épica 12 — Eventos y novedades
+**Status:** COMPLETED  
+**Date:** 2026-11-12  
+**Branch:** `epicas-12-14-eventos-proveedores`  
+**Version:** v1.2.4
+
+- `panel-eventos-page.tsx`, eventos públicos en home.
+
+## Épica 14 — Proveedores e inventario
+**Status:** COMPLETED  
+**Date:** 2026-11-12  
+**Branch:** `epicas-12-14-eventos-proveedores`  
+**Version:** v1.2.5
+
+- `panel-proveedores-page.tsx`, combobox de proveedor en inventario; Vitest en verde.

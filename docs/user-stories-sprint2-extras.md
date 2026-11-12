@@ -61,3 +61,23 @@ Yo como administrador quiero gestionar tipos desde una pestaña del módulo Clie
 ## HU_EXTRA_S2_15 — Ciudad y apellido en ficha de cliente
 
 Yo como empleado quiero capturar apellido y ciudad (campos de la demo/HU ampliados) en crear y editar cliente.
+
+## HU_EXTRA_S2_16 — Eventos visibles en el sitio público
+
+Yo como gerente quiero marcar un evento como visible en el home y que el portal lo consuma desde la API pública.
+
+## HU_EXTRA_S2_17 — Imagen e importancia clave en eventos
+
+Yo como administrador quiero URL de imagen y bandera «importancia clave» como en la demo de calendario.
+
+## HU_EXTRA_S2_18 — Tipos de evento ampliados (demo)
+
+Yo como administrador quiero tipos de calendario de la demo además de los tipos operativos de la HU 80.
+
+## HU_EXTRA_S2_19 — Campo «Qué nos suministra» en proveedores
+
+Yo como comprador quiero registrar en el proveedor el portafolio que nos suministra (textarea demo).
+
+## HU_EXTRA_S2_20 — Combobox de proveedor en inventario
+
+Yo como almacenista quiero elegir un proveedor activo del directorio en lugar de texto libre al registrar entradas.

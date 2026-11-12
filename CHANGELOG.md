@@ -13,8 +13,20 @@ Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprin
 | **1.2.1** | Sprint 2 · Épica 5 (catálogo de productos) |
 | **1.2.2** | Sprint 2 · Épica 6 (inventario y kardex) + cierre de modales |
 | **1.2.3** | Sprint 2 · Épica 7 (directorio de clientes y Habeas Data) |
+| **1.2.4** | Sprint 2 · Épica 12 (eventos y novedades) |
+| **1.2.5** | Sprint 2 · Épica 14 (proveedores e inventario) |
 
 ---
+
+## 2026-11-12 — v1.2.5 Épica 14 (proveedores e inventario)
+
+- Panel Proveedores y combobox en inventario (`id_proveedor`).
+- QA: `docs/qa-epic-14.md`.
+
+## 2026-11-12 — v1.2.4 Épica 12 (eventos y novedades)
+
+- Panel Eventos y feed público en home.
+- QA: `docs/qa-epic-12.md`.
 
 ## 2026-11-12 — v1.2.3 Épica 7 (directorio de clientes y Habeas Data)
 
