@@ -4,7 +4,8 @@ import { toast } from "../en-desarrollo"
 import type { AccesosPanel } from "./use-accesos-panel"
 import { puedeVerModulo } from "./logic"
 
-const CACHE_KEY = "mpdw_accesos_panel_v1"
+const CACHE_KEY = "mpdw_accesos_panel_v2"
+const CLAVES_CATALOGO = new Set(["productos", "categorias", "marcas", "tipos_producto"])
 const CACHE_MS = 60_000
 
 type Ctx = {
@@ -91,6 +92,12 @@ export function AccesosProvider({ activo, children }: { activo: boolean; childre
         if (!data) return true
         const acts = data.acciones_por_modulo?.[clave]
         if (acts?.length) return puedeVerModulo(acts)
+        if (CLAVES_CATALOGO.has(clave)) {
+          for (const k of CLAVES_CATALOGO) {
+            const ref = data.acciones_por_modulo?.[k]
+            if (ref?.length && puedeVerModulo(ref)) return true
+          }
+        }
         return data.modulos.includes(clave)
       },
     }),
