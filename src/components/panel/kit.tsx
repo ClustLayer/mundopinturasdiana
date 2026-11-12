@@ -410,6 +410,70 @@ export function Pager({
   )
 }
 
+export function SearchCombobox({
+  label,
+  required,
+  value,
+  onChange,
+  options,
+  placeholder = "Buscar…",
+  invalid,
+}: {
+  label: string
+  required?: boolean
+  value: string
+  onChange: (id: string) => void
+  options: { id: string; label: string; hint?: string }[]
+  placeholder?: string
+  invalid?: boolean
+}) {
+  const [q, setQ] = useState("")
+  const [open, setOpen] = useState(false)
+  const selected = options.find((o) => o.id === value)
+  const filtered = options.filter((o) => {
+    const t = q.trim().toLowerCase()
+    if (!t) return true
+    return o.label.toLowerCase().includes(t) || (o.hint || "").toLowerCase().includes(t)
+  })
+  return (
+    <FieldLabel label={label} required={required} className="relative">
+      <input
+        className={invalid ? inputInvalid : input}
+        value={open ? q : selected?.label ?? ""}
+        placeholder={placeholder}
+        onChange={(e) => {
+          setQ(e.target.value)
+          setOpen(true)
+          if (!e.target.value) onChange("")
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+      />
+      {open && filtered.length > 0 && (
+        <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border-2 border-plum/15 bg-white shadow-lg" role="listbox">
+          {filtered.slice(0, 40).map((o) => (
+            <li key={o.id}>
+              <button
+                type="button"
+                className="block w-full px-3 py-2 text-left text-sm hover:bg-plum-soft"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  onChange(o.id)
+                  setQ("")
+                  setOpen(false)
+                }}
+              >
+                <span className="font-semibold">{o.label}</span>
+                {o.hint && <span className="ml-2 text-xs text-ink/50">{o.hint}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </FieldLabel>
+  )
+}
+
 export const Panel = ({ title, children, action }: { title?: string; children: React.ReactNode; action?: React.ReactNode }) => (
   <section className="rounded-2xl border-2 border-plum/10 bg-white p-5">
     {(title || action) && (

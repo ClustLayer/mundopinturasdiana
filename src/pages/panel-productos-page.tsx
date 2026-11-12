@@ -16,6 +16,7 @@ import {
 } from "../components/panel/kit"
 import { puedeAccion } from "../features/accesos/logic"
 import { useAccesos } from "../features/accesos/accesos-provider"
+import { OriginBadge } from "../features/inventory/badges"
 import { toast } from "../features/en-desarrollo"
 import { API_URL, api, mensajeDe } from "../shared/api"
 
@@ -29,6 +30,7 @@ type Item = {
   precio_venta: string
   existencia: string | null
   stock_nivel: string
+  origen?: string
   estado: boolean
   imagen_url: string
   version_fila: number
@@ -49,6 +51,7 @@ type Detalle = {
   iva_porcentaje: string
   stock_minimo: number
   inventario_habilitado: boolean
+  origen: string
   imagen_url: string
   version_fila: number
   estado: boolean
@@ -68,6 +71,7 @@ const vacio = {
   iva_porcentaje: "19",
   stock_minimo: "0",
   inventario_habilitado: true,
+  origen: "comprado",
 }
 
 export function PanelProductosPage() {
@@ -216,7 +220,7 @@ export function PanelProductosPage() {
           <table className="w-full min-w-[880px] text-left text-sm">
             <thead className="bg-plum-soft text-xs uppercase tracking-wider text-plum">
               <tr>
-                {[["", ""], ["codigo", "Código"], ["nombre", "Nombre"], ["categoria", "Categoría"], ["marca", "Marca"], ["tipo", "Tipo"], ["precio", "Precio"], ["existencia", "Existencia"], ["estado", "Estado"], ["", "Acciones"]].map(([k, h]) => (
+                {[["", ""], ["codigo", "Código"], ["nombre", "Nombre"], ["categoria", "Categoría"], ["marca", "Marca"], ["tipo", "Tipo"], ["", "Origen"], ["precio", "Precio"], ["existencia", "Existencia"], ["estado", "Estado"], ["", "Acciones"]].map(([k, h]) => (
                   <th key={h || "img"} className="px-3 py-3">
                     {k ? <button type="button" className="font-bold" onClick={() => toggleOrden(k)}>{h}</button> : h}
                   </th>
@@ -232,6 +236,7 @@ export function PanelProductosPage() {
                   <td className="px-3 py-2">{p.categoria}</td>
                   <td className="px-3 py-2">{p.marca}</td>
                   <td className="px-3 py-2">{p.tipo}</td>
+                  <td className="px-3 py-2"><OriginBadge value={p.origen || "comprado"} /></td>
                   <td className="px-3 py-2">{p.precio_venta}</td>
                   <td className="px-3 py-2">
                     {p.existencia ?? "N/A"}
@@ -356,6 +361,7 @@ const OBLIG_PRODUCTO: { key: keyof typeof vacio; label: string }[] = [
   { key: "precio_venta", label: "Precio de venta" },
   { key: "iva_porcentaje", label: "IVA" },
   { key: "stock_minimo", label: "Stock mínimo" },
+  { key: "origen", label: "Origen" },
 ]
 
 function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; catalogos: { categorias: Opt[]; marcas: Opt[]; tipos: Opt[]; unidades: string[] }; onClose: () => void; onSaved: () => void }) {
@@ -389,6 +395,7 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
         iva_porcentaje: d.iva_porcentaje,
         stock_minimo: String(d.stock_minimo),
         inventario_habilitado: d.inventario_habilitado,
+        origen: d.origen || "comprado",
       })
       if (d.imagen_url) setPreview(`${API_URL}/api/v1/catalogo/media/${d.imagen_url}`)
     })
@@ -488,6 +495,8 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
         <Select required invalid={invalid.has("id_marca")} label="Marca" value={f.id_marca} onChange={(v) => setF({ ...f, id_marca: v })} options={catalogos.marcas.map((c) => ({ v: String(c.id_marca), l: c.nombre }))} />
         <Select required invalid={invalid.has("id_tipo_producto")} label="Tipo" value={f.id_tipo_producto} onChange={(v) => setF({ ...f, id_tipo_producto: v })} options={catalogos.tipos.map((c) => ({ v: String(c.id_tipo_producto), l: c.nombre }))} />
         <Select required invalid={invalid.has("unidad_medida")} label="Unidad de medida" value={f.unidad_medida} onChange={(v) => setF({ ...f, unidad_medida: v })} options={catalogos.unidades.map((u) => ({ v: u, l: u }))} />
+        <Select required invalid={invalid.has("origen")} label="Origen" value={f.origen} onChange={(v) => setF({ ...f, origen: v })} options={[{ v: "comprado", l: "Comprado (proveedor)" }, { v: "fabricado", l: "Fabricado en empresa" }]} />
+        <p className="text-xs text-ink/60 md:col-span-2">Comprado: se adquiere a un proveedor. Fabricado: se produce en la empresa.</p>
         <Field required invalid={invalid.has("precio_compra")} label="Precio de compra" placeholder="0.00" value={f.precio_compra} onChange={(v) => setF({ ...f, precio_compra: v })} />
         <Field required invalid={invalid.has("precio_venta")} label="Precio de venta" placeholder="0.00" value={f.precio_venta} onChange={(v) => setF({ ...f, precio_venta: v })} />
         <Field required invalid={invalid.has("iva_porcentaje")} label="IVA (%)" placeholder="19" value={f.iva_porcentaje} onChange={(v) => setF({ ...f, iva_porcentaje: v })} />
