@@ -14,6 +14,11 @@ Versionado del portal (**major.sprint.epica**):
 
 ---
 
+## 2026-11-11 — v1.2.6 Épica 6 (inventario demo)
+
+- Entrada Manual, Detector USB y Carga rápida; badges y kardex con costo.
+- Origen comprado/fabricado en formulario de productos.
+
 ## 2026-11-06 — v1.1.5 Cierre Sprint 1 (Épicas 13 y 18)
 
 ### Auditoría y UI transversal
