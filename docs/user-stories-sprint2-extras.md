@@ -49,3 +49,15 @@ Yo como sistema quiero exigir proveedor en entradas de productos comprados y mos
 ## HU_EXTRA_S2_12 — Badges y leyenda kardex/existencias
 
 Yo como usuario quiero ver badges de tipo en el kardex, origen comprado/fabricado, y chips Bajo/Agotado en existencias, como en la demo.
+
+## HU_EXTRA_S2_13 — Columna Habeas Data en listado de clientes (demo)
+
+Yo como empleado quiero ver en la tabla del directorio si el cliente autorizó tratamiento de datos (bool), como en `MundoPinturasDiana-Demo`.
+
+## HU_EXTRA_S2_14 — Pestaña Tipos de cliente en el mismo módulo
+
+Yo como administrador quiero gestionar tipos desde una pestaña del módulo Clientes (además del listado), alineado con la navegación demo.
+
+## HU_EXTRA_S2_15 — Ciudad y apellido en ficha de cliente
+
+Yo como empleado quiero capturar apellido y ciudad (campos de la demo/HU ampliados) en crear y editar cliente.

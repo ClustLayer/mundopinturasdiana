@@ -68,3 +68,10 @@ La demo `MundoPinturasDiana-Demo` no forma parte de este repositorio y no se mod
 - HU 31–36 — `src/pages/panel-inventario-page.tsx` (existencias, kardex, entrada, ajuste, traslado, alerta de mínimo).
 - Cierre de modales — `mensajeDe` clona la respuesta en `src/shared/api.ts`; un solo scroll en `Modal` (`kit.tsx`).
 - QA — `docs/qa-epic-6.md`. Extras — `docs/user-stories-sprint2-extras.md`.
+
+## Épica 7 — Directorio de clientes y Habeas Data (2026-11-12) — **v1.2.3** — **Status:** COMPLETED
+
+- HU 37–39 — `src/pages/panel-clientes-page.tsx` (crear/editar con Habeas Data, listado, WhatsApp, desactivación).
+- HU 40–41 — pestaña Tipos de cliente (semilla «Común» protegida).
+- HU 42 — detalle con historial y métricas (gerente/administrador).
+- QA — `docs/qa-epic-7.md`. Extras demo — `docs/user-stories-sprint2-extras.md` (S2_13–S2_15).

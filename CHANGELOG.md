@@ -1,6 +1,6 @@
 # Changelog
 
-Versionado del portal (**major.sprint.epica**):
+Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprint 2, tercer dígito = épica secuencial del sprint).
 
 | Versión | Alcance |
 |---------|---------|
@@ -10,11 +10,20 @@ Versionado del portal (**major.sprint.epica**):
 | **1.1.3** | Sprint 1 · Épica 3 (roles y permisos) |
 | **1.1.4** | Sprint 1 · Épica 4 (sedes públicas/admin) |
 | **1.1.5** | Sprint 1 · Cierre (Épicas 13 y 18 + vínculo sede principal) |
-| **1.2.6** | Sprint 2 · Épica 6 (inventario y kardex) + cierre de modales |
+| **1.2.1** | Sprint 2 · Épica 5 (catálogo de productos) |
+| **1.2.2** | Sprint 2 · Épica 6 (inventario y kardex) + cierre de modales |
+| **1.2.3** | Sprint 2 · Épica 7 (directorio de clientes y Habeas Data) |
 
 ---
 
-## 2026-11-11 — v1.2.6 Épica 6 (inventario demo)
+## 2026-11-12 — v1.2.3 Épica 7 (directorio de clientes y Habeas Data)
+
+- Panel Clientes con fidelidad demo: listado, filtros, WhatsApp, modales crear/editar.
+- Tipos de cliente y detalle con historial/métricas (gerente/admin).
+- Habeas Data: consentimiento, texto legal y fecha automática.
+- QA: `docs/qa-epic-7.md`; pruebas de validación e.164/correo.
+
+## 2026-11-11 — v1.2.2 Épica 6 (inventario demo)
 
 - Entrada Manual, Detector USB y Carga rápida; badges y kardex con costo.
 - Origen comprado/fabricado en formulario de productos.

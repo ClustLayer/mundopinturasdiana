@@ -84,3 +84,13 @@
 - Pantalla de inventario alineada al módulo demo (existencias por sede, kardex, entrada, ajuste y traslado).
 - El cliente HTTP clona el cuerpo antes de leer el mensaje de error, para que un 201 cierre el modal.
 - El diálogo del kit no suma un segundo scroll.
+
+## Épica 7 — Directorio de clientes y Habeas Data
+**Status:** COMPLETED  
+**Date:** 2026-11-12  
+**Branch:** `epica-7-directorio-clientes-habeas-data`  
+**Version:** v1.2.3
+
+- Panel demo-first: listado, filtros, WhatsApp, modales, tipos y detalle con métricas.
+- Validaciones cliente: `features/clientes/logic.ts` + tests Vitest.
+- `pnpm run calidad` en verde.

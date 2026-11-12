@@ -47,3 +47,10 @@ Consumo de `/api/v1/roles-permisos/*` y `/api/v1/auth/accesos-panel`. Mensajes d
 
 - Inventario consume `/api/v1/inventario/existencias/`, `/kardex/` y `/movimientos/{accion}/`.
 - Modales de alta dejan de mostrar error cuando la respuesta 201 ya fue leída.
+
+## Épica 7
+**Validated:** 2026-11-12
+
+- Clientes consume `/api/v1/clientes/`, `/tipos/`, `/{id}/historial/`.
+- Duplicado de teléfono y concurrencia 409 reflejados en UI modal.
+- QA: `docs/qa-epic-7.md`.
