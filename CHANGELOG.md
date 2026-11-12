@@ -10,8 +10,14 @@ Versionado del portal (**major.sprint.epica**):
 | **1.1.3** | Sprint 1 · Épica 3 (roles y permisos) |
 | **1.1.4** | Sprint 1 · Épica 4 (sedes públicas/admin) |
 | **1.1.5** | Sprint 1 · Cierre (Épicas 13 y 18 + vínculo sede principal) |
+| **1.2.6** | Sprint 2 · Épica 6 (inventario y kardex) + cierre de modales |
 
 ---
+
+## 2026-11-11 — v1.2.6 Épica 6 (inventario demo)
+
+- Entrada Manual, Detector USB y Carga rápida; badges y kardex con costo.
+- Origen comprado/fabricado en formulario de productos.
 
 ## 2026-11-06 — v1.1.5 Cierre Sprint 1 (Épicas 13 y 18)
 

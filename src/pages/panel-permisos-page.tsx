@@ -571,7 +571,7 @@ function TabMatriz() {
       )}
       <div className="mt-6 flex justify-end gap-3">
         <button type="button" className={btnGhost} onClick={() => setDestino("")}>Cancelar</button>
-        <button type="button" className={btnPrimary} disabled={pending} onClick={() => void guardar()}>Guardar permisos</button>
+        <button type="button" className={btnPrimary} disabled={pending} onClick={() => void guardar()}>{pending ? <Loader2 className="animate-spin" size={16} /> : "Guardar permisos"}</button>
       </div>
     </Panel>
   )

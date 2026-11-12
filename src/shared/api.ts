@@ -44,7 +44,7 @@ export async function cuerpoError(respuesta: Response): Promise<ErrorApi> {
 }
 
 export async function mensajeDe(respuesta: Response): Promise<string> {
-  const data = await cuerpoError(respuesta)
+  const data = await cuerpoError(respuesta.clone())
   return data.mensaje ?? ""
 }
 

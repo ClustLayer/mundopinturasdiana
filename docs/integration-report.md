@@ -41,3 +41,9 @@ Consumo de `/api/v1/roles-permisos/*` y `/api/v1/auth/accesos-panel`. Mensajes d
 - Panel de productos consume `/api/v1/catalogo/productos/`.
 - Parámetros en `/api/v1/catalogo/parametros/`.
 - 404 accesible en rutas no registradas.
+
+## Épica 6
+**Validated:** 2026-11-11
+
+- Inventario consume `/api/v1/inventario/existencias/`, `/kardex/` y `/movimientos/{accion}/`.
+- Modales de alta dejan de mostrar error cuando la respuesta 201 ya fue leída.
