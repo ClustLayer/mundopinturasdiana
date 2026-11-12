@@ -59,5 +59,6 @@ La demo `MundoPinturasDiana-Demo` no forma parte de este repositorio y no se mod
 ## Épica 5 — Catálogo de productos (2026-11-11) — **Status:** COMPLETED
 
 - HU 22–26 y 29–30 — `src/pages/panel-productos-page.tsx` (listado, alta, edición, estado, historial, importación y exportación).
-- HU 27–28 — `PanelParametrosPage` en la ruta de categorías.
+- HU 27–28 — `panel-catalogo-param-page.tsx` (categorías, marcas, tipos en menú separado).
+- Extras — `docs/user-stories-epic-5-extras.md`, `docs/qa-epic-5.md`, UX formularios (`FormAlert`, placeholders, validación en modal).
 - Ruta inexistente — `NoEncontrada` con animación de marca.
