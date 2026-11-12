@@ -18,6 +18,11 @@ Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprin
 
 ---
 
+## 2026-11-12 — Mejoras integrales Sprint 2 (iteración 12)
+
+- `PhoneInput`, resumen condicionado, productos/export, parámetros catálogo, inventario, colores rol/auditoría/tipos cliente, eventos landing.
+- QA: `docs/correcciones-iteracion-12.md`, `src/lib/phone-e164.test.ts`.
+
 ## 2026-11-12 — v1.2.5 Épica 14 (proveedores e inventario)
 
 - Panel Proveedores y combobox en inventario (`id_proveedor`).

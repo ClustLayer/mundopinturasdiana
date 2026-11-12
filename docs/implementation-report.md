@@ -110,3 +110,10 @@
 **Version:** v1.2.5
 
 - `panel-proveedores-page.tsx`, combobox de proveedor en inventario; Vitest en verde.
+
+## Iteración 12 — Mejoras integrales Sprint 2 (frontend)
+**Status:** COMPLETED  
+**Date:** 2026-11-12  
+**Branch:** `epicas-12-14-eventos-proveedores`
+
+- Ver `docs/correcciones-iteracion-12.md`. `corepack pnpm run calidad` equivalente en verde (20 Vitest, 2 Playwright).
