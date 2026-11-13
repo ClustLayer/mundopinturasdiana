@@ -18,6 +18,11 @@ Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprin
 
 ---
 
+## 2026-11-13 — Rendimiento y correcciones (iteración 13)
+
+- Timeout HTTP, saludo Bogotá, WhatsApp, teléfono legible y permisos sin catálogo editable.
+- Detalle: `docs/correcciones-iteracion-13.md`.
+
 ## 2026-11-12 — Mejoras integrales Sprint 2 (iteración 12)
 
 - `PhoneInput`, resumen condicionado, productos/export, parámetros catálogo, inventario, colores rol/auditoría/tipos cliente, eventos landing.
