@@ -17,6 +17,7 @@ import {
 import { puedeAccion } from "../features/accesos/logic"
 import { useAccesos } from "../features/accesos/accesos-provider"
 import { PhoneInput } from "../components/panel/phone-input"
+import { BotonWhatsApp } from "../components/panel/boton-whatsapp"
 import { telefonoValido } from "../features/clientes/logic"
 import { correoValido, TIPOS_DOCUMENTO } from "../features/proveedores/logic"
 import { toast } from "../features/en-desarrollo"
@@ -174,11 +175,12 @@ export function PanelProveedoresPage() {
                 <tr key={p.id_proveedor} className="border-t border-plum/5">
                   <td className="px-4 py-3 font-semibold">{p.nombre}</td>
                   <td className="px-4 py-3">{p.contacto_nombre || "—"}</td>
-                  <td className="px-4 py-3">{p.telefono || "—"}</td>
+                  <td className="whitespace-nowrap px-4 py-3 tabular-nums">{p.telefono || "—"}</td>
                   <td className="px-4 py-3">{p.correo || "—"}</td>
                   <td className="px-4 py-3">{p.estado ? "Activo" : "Inactivo"}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
+                      <BotonWhatsApp telefono={p.telefono} nombre={p.nombre} />
                       {puedeEditar && (
                         <>
                           <button

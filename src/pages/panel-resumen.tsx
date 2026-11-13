@@ -10,6 +10,7 @@ import { getTodaySalesSummary } from "../lib/public-data"
 import { Panel } from "../components/panel/kit"
 import { Blob } from "../components/ui/splash"
 import { avisoEnDesarrollo } from "../features/en-desarrollo"
+import { saludoColombia } from "../lib/saludo"
 import { api } from "../shared/api"
 
 type PanelResumenPayload = {
@@ -42,8 +43,7 @@ export function PanelResumenPage() {
   const role = sesion.rol.toLowerCase()
   const isEmp = sesion.rol === "Empleado"
   const { count, total } = getTodaySalesSummary()
-  const hi = new Date().getUTCHours()
-  const greet = hi < 12 ? "Buenos días" : hi < 19 ? "Buenas tardes" : "Buenas noches"
+  const greet = saludoColombia()
 
   const accionesInv = accionesModulo("inventario")
   const puedeInventario =

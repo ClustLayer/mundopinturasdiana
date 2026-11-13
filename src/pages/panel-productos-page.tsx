@@ -539,9 +539,13 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
       }
       const creado = (await r.json()) as { producto?: { id_producto: number } }
       const pid = creado.producto?.id_producto ?? id
-      if (archivo && pid) await subir(pid, archivo, setProgreso)
       toast(msg || (isNew ? "Producto creado correctamente." : "Producto actualizado correctamente."))
       onSaved()
+      if (archivo && pid) {
+        void subir(pid, archivo, setProgreso).catch(() => {
+          toast("El registro se guardó, pero la imagen no se pudo cargar. Puede reintentarla al editar.")
+        })
+      }
     })
 
   const sinCatalogo =
@@ -634,13 +638,19 @@ function Field({
 }
 
 function subir(id: number, file: File, setProgreso: (n: number) => void) {
-  return new Promise<void>((resolve) => {
+  return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.open("POST", `${API_URL}/api/v1/catalogo/productos/${id}/imagen/`)
+    xhr.timeout = 60000
     const token = sessionStorage.getItem("mpdw_access_token_v1")
     if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`)
     xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProgreso(Math.round((e.loaded / e.total) * 100)) }
-    xhr.onloadend = () => resolve()
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve()
+      else reject(new Error("imagen"))
+    }
+    xhr.onerror = () => reject(new Error("imagen"))
+    xhr.ontimeout = () => reject(new Error("imagen"))
     const data = new FormData()
     data.append("imagen", file)
     xhr.send(data)

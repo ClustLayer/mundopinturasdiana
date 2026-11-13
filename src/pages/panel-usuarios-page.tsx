@@ -20,6 +20,7 @@ import {
 import { MSG } from "../features/usuarios/messages"
 import { RolBadge } from "../features/auditoria/accion-badge"
 import { formularioUsuarioCompleto, telefonoValido } from "../features/usuarios/logic"
+import { BotonWhatsApp } from "../components/panel/boton-whatsapp"
 import { PhoneInput } from "../components/panel/phone-input"
 import { toast } from "../features/en-desarrollo"
 import { MSG_TRANSVERSAL } from "../features/transversal/messages"
@@ -30,6 +31,7 @@ type Fila = {
   nombre_completo: string
   documento: string
   email: string
+  telefono?: string
   rol: string
   estado: string
   ultimo_acceso: string | null
@@ -208,6 +210,7 @@ export function PanelUsuariosPage() {
                   <td className="px-4 py-3"><Badge value={u.estado} /></td>
                   <td className="px-4 py-3">{u.ultimo_acceso ? new Date(u.ultimo_acceso).toLocaleString() : "—"}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-right">
+                    <BotonWhatsApp telefono={u.telefono ?? ""} nombre={u.nombre_completo} />
                     {puedeEditar && (
                       <button type="button" aria-label={`Editar ${u.nombre_completo}`} className="rounded-lg p-2 text-plum hover:bg-plum-soft" onClick={() => irEditar(u.id_usuario)}>
                         <Pencil size={16} />

@@ -38,10 +38,10 @@ export function PhoneInput({
 
   return (
     <FieldLabel label={label} required={required} className="relative">
-      <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
-        <div className="relative min-w-0 flex-1 sm:max-w-[14rem]">
+      <div className="mt-1.5 grid grid-cols-1 gap-2 min-[400px]:grid-cols-[minmax(11rem,14rem)_minmax(0,1fr)]">
+        <div className="relative min-w-[11rem]">
           <input
-            className={`${invalid ? inputInvalid : input} !mt-0`}
+            className={`${invalid ? inputInvalid : input} !mt-0 h-11 whitespace-nowrap text-sm`}
             value={displayCountry}
             placeholder="Buscar país…"
             aria-autocomplete="list"
@@ -85,7 +85,7 @@ export function PhoneInput({
           type="text"
           inputMode="numeric"
           autoComplete="tel-national"
-          className={`${invalid ? inputInvalid : input} !mt-0 flex-[2]`}
+          className={`${invalid ? inputInvalid : input} !mt-0 h-11 min-w-0 text-sm`}
           value={national}
           placeholder={placeholder}
           aria-invalid={invalid}
