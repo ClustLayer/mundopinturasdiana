@@ -435,7 +435,7 @@ function ClienteModal({
     })
 
   return (
-    <Modal open={open} title={isNew ? "Crear cliente" : "Editar cliente"} onClose={onClose}>
+    <Modal open={open} title={isNew ? "Crear cliente" : "Editar cliente"} onClose={onClose} wide>
       {error && <FormAlert message={error} />}
       {dup && (
         <div className="mb-4 rounded-xl border-2 border-brand/30 bg-brand/5 p-3 text-sm">
@@ -458,11 +458,37 @@ function ClienteModal({
         <FieldLabel label="Apellido">
           <input value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder="Apellido (opcional)" className={input} />
         </FieldLabel>
-        <PhoneInput label="Teléfono" required value={telefono} onChange={setTelefono} invalid={invalidTel || !telefono.trim()} placeholder="300 123 4567" />
-        <label className="mt-6 flex items-center gap-2 text-sm font-semibold sm:mt-8">
+        <PhoneInput
+          className="sm:col-span-2"
+          label="Teléfono"
+          required
+          value={telefono}
+          onChange={setTelefono}
+          invalid={invalidTel || !telefono.trim()}
+          placeholder="300 123 4567"
+        />
+        <label className="flex min-h-11 items-center gap-2 text-sm font-semibold sm:col-span-2">
           <input type="checkbox" checked={whatsapp} onChange={(e) => setWhatsapp(e.target.checked)} />
           Tiene WhatsApp
         </label>
+        <FieldLabel label="Correo electrónico">
+          <input
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            placeholder="correo@empresa.com"
+            className={invalidMail ? inputInvalid : input}
+            aria-invalid={invalidMail || undefined}
+          />
+        </FieldLabel>
+        <FieldLabel label="Documento">
+          <input
+            value={documento}
+            onChange={(e) => setDocumento(e.target.value)}
+            placeholder="Documento o NIT"
+            className={input}
+            readOnly={bloqueaDoc}
+          />
+        </FieldLabel>
         <FieldLabel label="Dirección">
           <input value={direccion} onChange={(e) => setDireccion(e.target.value)} placeholder="Dirección de entrega o facturación" className={input} />
         </FieldLabel>
@@ -482,24 +508,6 @@ function ClienteModal({
               </option>
             ))}
           </select>
-        </FieldLabel>
-        <FieldLabel label="Documento">
-          <input
-            value={documento}
-            onChange={(e) => setDocumento(e.target.value)}
-            placeholder="Documento o NIT"
-            className={input}
-            readOnly={bloqueaDoc}
-          />
-        </FieldLabel>
-        <FieldLabel label="Correo electrónico">
-          <input
-            value={correo}
-            onChange={(e) => setCorreo(e.target.value)}
-            placeholder="correo@empresa.com"
-            className={invalidMail ? inputInvalid : input}
-            aria-invalid={invalidMail || undefined}
-          />
         </FieldLabel>
         {!isNew && (
           <FieldLabel label="Estado">

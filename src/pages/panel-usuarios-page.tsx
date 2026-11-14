@@ -570,7 +570,14 @@ function UsuarioFormModal({
           Documento<span className="text-brand"> *</span>
           <input required value={documento} onChange={(e) => setDocumento(e.target.value)} className={input} placeholder="Ej. 1001234567" />
         </label>
-        <PhoneInput label="Teléfono" value={telefono} onChange={setTelefono} invalid={Boolean(telefono.trim()) && !telefonoValido(telefono)} placeholder="300 123 4567" />
+        <PhoneInput
+          className="sm:col-span-2"
+          label="Teléfono"
+          value={telefono}
+          onChange={setTelefono}
+          invalid={Boolean(telefono.trim()) && !telefonoValido(telefono)}
+          placeholder="300 123 4567"
+        />
         <label className="block text-sm font-semibold sm:col-span-2">
           Correo electrónico<span className="text-brand"> *</span>
           <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={input} placeholder="usuario@empresa.com" />

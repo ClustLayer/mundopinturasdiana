@@ -367,7 +367,7 @@ function ProveedorModal({
 
   return (
     <>
-      <Modal open={open} title={isNew ? "Crear proveedor" : "Editar proveedor"} onClose={onClose}>
+      <Modal open={open} title={isNew ? "Crear proveedor" : "Editar proveedor"} onClose={onClose} wide>
         {error && <FormAlert message={error} />}
         <div className="grid gap-4 sm:grid-cols-2">
           <FieldLabel label="Nombre / empresa" required className="sm:col-span-2">
@@ -389,8 +389,15 @@ function ProveedorModal({
           <FieldLabel label="Cargo del contacto">
             <input value={contactoCargo} onChange={(e) => setContactoCargo(e.target.value)} placeholder="Ej. Gerente comercial" className={input} />
           </FieldLabel>
-          <PhoneInput label="Teléfono" value={telefono} onChange={setTelefono} invalid={Boolean(invalidTel)} placeholder="300 123 4567" />
-          <FieldLabel label="Correo">
+          <PhoneInput
+            className="sm:col-span-2"
+            label="Teléfono"
+            value={telefono}
+            onChange={setTelefono}
+            invalid={Boolean(invalidTel)}
+            placeholder="300 123 4567"
+          />
+          <FieldLabel label="Correo" className="sm:col-span-2">
             <input
               type="email"
               value={correo}

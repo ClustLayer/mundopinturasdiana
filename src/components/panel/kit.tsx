@@ -73,7 +73,7 @@ export function Modal({
         if (e.target === e.currentTarget) onClose()
       }}
       aria-labelledby={headingId}
-      className={`m-auto w-[calc(100%-2rem)] overflow-hidden ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl border-2 border-plum bg-white p-0 text-ink shadow-[8px_8px_0_0_var(--color-plum)] backdrop:bg-plum/50 backdrop:backdrop-blur-sm`}
+      className={`m-auto w-[calc(100%-2rem)] overflow-hidden ${wide ? "max-w-3xl" : "max-w-md"} rounded-2xl border-2 border-plum bg-white p-0 text-ink shadow-[8px_8px_0_0_var(--color-plum)] backdrop:bg-plum/50 backdrop:backdrop-blur-sm`}
     >
       {open && (
         <div ref={contentRef} className="max-h-[85dvh] overflow-y-auto p-6">
