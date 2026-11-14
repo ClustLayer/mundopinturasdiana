@@ -19,17 +19,15 @@ import { toast } from "../features/en-desarrollo"
 import { api, mensajeDe } from "../shared/api"
 
 type Rol = { id_rol: number; nombre: string; descripcion: string; estado: boolean; es_rol_base: boolean; version_fila: number }
-type Permiso = { id_permiso: number; nombre: string; modulo: string; accion: string; descripcion: string; estado: boolean; version_fila: number }
 
 const TABS = [
   { id: "roles", label: "Roles" },
-  { id: "permisos", label: "Catálogo de permisos" },
   { id: "matriz", label: "Matriz de permisos" },
 ] as const
 
 export function PanelPermisosPage() {
   const [params, setParams] = useSearchParams()
-  const tab = (params.get("tab") as (typeof TABS)[number]["id"]) || "roles"
+  const tab = params.get("tab") === "matriz" ? "matriz" : "roles"
   const setTab = (id: string) => {
     const next = new URLSearchParams(params)
     next.set("tab", id)
@@ -42,7 +40,7 @@ export function PanelPermisosPage() {
         <p className="font-mono text-xs uppercase tracking-widest text-cyan-dark">Roles y permisos</p>
         <h1 className="font-display text-4xl font-extrabold text-plum">Permisos</h1>
         <p className="mt-1 max-w-3xl text-sm text-ink/60">
-          Qué acciones puede ejecutar cada rol y cada usuario. Los ajustes por usuario prevalecen sobre los del rol.
+          Qué acciones puede ejecutar cada rol. La matriz de permisos gobierna el acceso a cada módulo. Los códigos de permiso son fijos y no se editan aquí.
         </p>
       </header>
       <nav className="mb-6 flex flex-wrap gap-2" aria-label="Secciones">
@@ -59,7 +57,6 @@ export function PanelPermisosPage() {
         ))}
       </nav>
       {tab === "roles" && <TabRoles />}
-      {tab === "permisos" && <TabPermisos />}
       {tab === "matriz" && <TabMatriz />}
     </section>
   )
@@ -290,188 +287,6 @@ function RolModal({ open, id, onClose, onSaved }: { open: boolean; id: number | 
   )
 }
 
-function TabPermisos() {
-  const filtroSelect = `${input} !mt-0 w-auto max-w-[12rem] shrink-0`
-  const [items, setItems] = useState<Permiso[]>([])
-  const [modulo, setModulo] = useState("")
-  const [accion, setAccion] = useState("")
-  const [catalogos, setCatalogos] = useState<{ modulos: { clave: string; etiqueta: string }[]; acciones: string[] }>({ modulos: [], acciones: [] })
-  const [modal, setModal] = useState<"new" | number | null>(null)
-  const { pending } = useDo()
-
-  const cargar = useCallback(async () => {
-    const qs = new URLSearchParams({ page: "1" })
-    if (modulo) qs.set("modulo", modulo)
-    if (accion) qs.set("accion", accion)
-    const r = await api(`/api/v1/roles-permisos/permisos?${qs}`)
-    if (r.ok) setItems(((await r.json()) as { items: Permiso[] }).items)
-  }, [modulo, accion])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
-    void cargar()
-  }, [cargar])
-  useEffect(() => {
-    void (async () => {
-      const r = await api("/api/v1/roles-permisos/permisos/catalogos")
-      if (r.ok) setCatalogos(await r.json())
-    })()
-  }, [])
-
-  return (
-    <>
-      <div className="mb-4 flex flex-nowrap items-center gap-3 overflow-x-auto">
-        <select aria-label="Filtro módulo" value={modulo} onChange={(e) => setModulo(e.target.value)} className={filtroSelect}>
-          <option value="">Todos los módulos</option>
-          {catalogos.modulos.map((m) => (
-            <option key={m.clave} value={m.clave}>{m.etiqueta}</option>
-          ))}
-        </select>
-        <select aria-label="Filtro acción" value={accion} onChange={(e) => setAccion(e.target.value)} className={filtroSelect}>
-          <option value="">Todas las acciones</option>
-          {catalogos.acciones.map((a) => (
-            <option key={a} value={a}>{a}</option>
-          ))}
-        </select>
-        <button type="button" className={`${btnPrimary} shrink-0`} onClick={() => setModal("new")}>
-          <Plus size={16} /> Nuevo permiso
-        </button>
-      </div>
-      {items.length === 0 ? (
-        <Empty text="No hay permisos en el catálogo." />
-      ) : (
-        <div className="overflow-x-auto rounded-2xl border-2 border-plum/10 bg-white">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-plum-soft text-xs uppercase tracking-wider text-plum">
-              <tr>
-                {["Nombre", "Módulo", "Acción", "Estado", "Acciones"].map((h) => (
-                  <th key={h} className="px-4 py-3 font-bold">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-plum/10">
-              {items.map((p) => (
-                <tr key={p.id_permiso}>
-                  <td className="px-4 py-3 font-semibold">{p.nombre}</td>
-                  <td className="px-4 py-3">{p.modulo}</td>
-                  <td className="px-4 py-3">{p.accion}</td>
-                  <td className="px-4 py-3">{p.estado ? "Activo" : "Inactivo"}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      aria-label={`Editar permiso ${p.nombre}`}
-                      className="rounded-lg p-2 text-plum hover:bg-plum-soft"
-                      disabled={pending}
-                      onClick={() => setModal(p.id_permiso)}
-                    >
-                      <Pencil size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <PermisoModal open={modal !== null} id={modal === "new" ? null : modal} catalogos={catalogos} onClose={() => setModal(null)} onSaved={() => void cargar()} />
-    </>
-  )
-}
-
-function PermisoModal({
-  open,
-  id,
-  catalogos,
-  onClose,
-  onSaved,
-}: {
-  open: boolean
-  id: number | null
-  catalogos: { modulos: { clave: string; etiqueta: string }[]; acciones: string[] }
-  onClose: () => void
-  onSaved: () => void
-}) {
-  const isNew = id === null
-  const [nombre, setNombre] = useState("")
-  const [modulo, setModulo] = useState("")
-  const [accion, setAccion] = useState("")
-  const [descripcion, setDescripcion] = useState("")
-  const [estado, setEstado] = useState(true)
-  const [version, setVersion] = useState(1)
-  const { run, pending } = useDo()
-
-  useEffect(() => {
-    if (!open || isNew) return
-    void (async () => {
-      const r = await api(`/api/v1/roles-permisos/permisos?page=1&page_size=500`)
-      if (!r.ok) return
-      const items = ((await r.json()) as { items: Permiso[] }).items
-      const p = items.find((x) => x.id_permiso === id)
-      if (!p) return
-      setNombre(p.nombre)
-      setModulo(p.modulo)
-      setAccion(p.accion)
-      setDescripcion(p.descripcion)
-      setEstado(p.estado)
-      setVersion(p.version_fila)
-    })()
-  }, [open, id, isNew])
-
-  const guardar = () =>
-    run(async () => {
-      const payload = isNew
-        ? { nombre, modulo, accion, descripcion }
-        : { nombre, modulo, accion, descripcion, estado, version_fila: version }
-      const r = await api(
-        isNew ? "/api/v1/roles-permisos/permisos" : `/api/v1/roles-permisos/permisos/${id}`,
-        { method: isNew ? "POST" : "PATCH", body: JSON.stringify(payload) },
-      )
-      const msg = await mensajeDe(r)
-      if (!r.ok) {
-        toast(msg || (isNew ? "No fue posible crear el permiso. Intente nuevamente." : "No fue posible actualizar el permiso. Intente nuevamente."))
-        return
-      }
-      toast(msg)
-      onSaved()
-      onClose()
-    })
-
-  return (
-    <Modal open={open} onClose={onClose} title={isNew ? "Crear permiso" : "Editar permiso"} wide>
-      <label className="block text-sm font-semibold">Nombre<input value={nombre} onChange={(e) => setNombre(e.target.value)} maxLength={100} className={input} /></label>
-      <label className="block text-sm font-semibold">
-        Módulo
-        <select value={modulo} onChange={(e) => setModulo(e.target.value)} className={input}>
-          <option value="">—</option>
-          {catalogos.modulos.map((m) => (
-            <option key={m.clave} value={m.clave}>{m.etiqueta}</option>
-          ))}
-        </select>
-      </label>
-      <label className="block text-sm font-semibold">
-        Acción
-        <select value={accion} onChange={(e) => setAccion(e.target.value)} className={input}>
-          <option value="">—</option>
-          {catalogos.acciones.map((a) => (
-            <option key={a} value={a}>{a}</option>
-          ))}
-        </select>
-      </label>
-      <label className="block text-sm font-semibold">Descripción<textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className={input} rows={2} /></label>
-      {!isNew && (
-        <label className="flex items-center gap-2 text-sm font-semibold">
-          <input type="checkbox" checked={estado} onChange={(e) => setEstado(e.target.checked)} /> Activo
-        </label>
-      )}
-      <div className="mt-6 flex justify-end gap-3">
-        <button type="button" className={btnGhost} onClick={onClose}>Cancelar</button>
-        <button type="button" className={btnPrimary} disabled={pending} onClick={() => void guardar()}>
-          {isNew ? "Crear permiso" : "Guardar cambios"}
-        </button>
-      </div>
-    </Modal>
-  )
-}
 
 function TabMatriz() {
   const { refrescar } = useAccesos()

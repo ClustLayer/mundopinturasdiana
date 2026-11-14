@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Loader2, Pencil, Plus, Search } from "lucide-react"
+import { Loader2, Pencil, Plus, Power, PowerOff, Search, Trash2 } from "lucide-react"
 import {
   Confirm,
+  ConfirmDestructiveDialog,
   Empty,
   FieldLabel,
   FormAlert,
@@ -66,6 +67,7 @@ export function PanelCatalogoParamPage({ tipo }: { tipo: ParamTipo }) {
   const [items, setItems] = useState<Param[]>([])
   const [edit, setEdit] = useState<Param | "new" | null>(null)
   const [estadoTarget, setEstadoTarget] = useState<Param | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Param | null>(null)
   const { run, pending } = useDo()
 
   const cargar = useCallback(async () => {
@@ -121,7 +123,7 @@ export function PanelCatalogoParamPage({ tipo }: { tipo: ParamTipo }) {
                 {tipo === "tipos" && <th className="px-4 py-3">Afecta venta diaria</th>}
                 {tipo === "tipos" && <th className="px-4 py-3">Base</th>}
                 <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 w-16" aria-label="Acciones" />
+                <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -131,18 +133,50 @@ export function PanelCatalogoParamPage({ tipo }: { tipo: ParamTipo }) {
                   <td className="px-4 py-3 text-ink/70">{it.descripcion || "—"}</td>
                   {tipo === "tipos" && <td className="px-4 py-3">{it.afecta_venta_diaria ? "Sí" : "No"}</td>}
                   {tipo === "tipos" && <td className="px-4 py-3">{it.es_base ? "Sí" : "—"}</td>}
-                  <td className="px-4 py-3">{it.estado ? "Activo" : "Inactivo"}</td>
                   <td className="px-4 py-3">
-                    {puedeEditar && (
-                      <button
-                        type="button"
-                        className="rounded-lg p-2 hover:bg-plum-soft"
-                        aria-label={`Editar ${it.nombre}`}
-                        onClick={() => setEdit(it)}
-                      >
-                        <Pencil size={16} />
-                      </button>
-                    )}
+                    <span
+                      className={
+                        it.estado
+                          ? "rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-900"
+                          : "rounded-full bg-brand/10 px-2 py-0.5 text-xs font-bold text-brand-dark"
+                      }
+                    >
+                      {it.estado ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      {puedeEditar && (
+                        <button
+                          type="button"
+                          className="rounded-lg p-2 hover:bg-plum-soft"
+                          aria-label={`Editar ${it.nombre}`}
+                          onClick={() => setEdit(it)}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      )}
+                      {puedeEditar && !it.es_base && (
+                        <button
+                          type="button"
+                          className="rounded-lg p-2 text-plum hover:bg-plum-soft"
+                          aria-label={it.estado ? `Desactivar ${it.nombre}` : `Activar ${it.nombre}`}
+                          onClick={() => setEstadoTarget({ ...it, estado: !it.estado })}
+                        >
+                          {it.estado ? <PowerOff size={16} /> : <Power size={16} />}
+                        </button>
+                      )}
+                      {puedeEditar && !it.es_base && (
+                        <button
+                          type="button"
+                          className="rounded-lg p-2 text-brand hover:bg-brand/10"
+                          aria-label={`Eliminar ${it.nombre}`}
+                          onClick={() => setDeleteTarget(it)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -181,10 +215,35 @@ export function PanelCatalogoParamPage({ tipo }: { tipo: ParamTipo }) {
         />
       )}
 
+      <ConfirmDestructiveDialog
+        open={deleteTarget !== null}
+        title="Eliminar registro"
+        recordName={deleteTarget?.nombre ?? ""}
+        message="¿Confirma que desea eliminar"
+        yes="Eliminar"
+        danger
+        busy={pending}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return
+          void run(async () => {
+            const r = await api(`/api/v1/catalogo/parametros/${tipo}/${deleteTarget.id}/`, { method: "DELETE" })
+            const msg = await mensajeDe(r)
+            if (!r.ok) {
+              toast(msg || "No fue posible eliminar el registro. Intente nuevamente.")
+              return
+            }
+            toast(msg || "Registro eliminado correctamente.")
+            setDeleteTarget(null)
+            void cargar()
+          })
+        }}
+      />
+
       <Confirm
         open={estadoTarget !== null}
         title="Cambiar estado"
-        text="¿Está seguro de que desea cambiar el estado de este producto?"
+        text={`¿Está seguro de que desea ${estadoTarget?.estado ? "activar" : "desactivar"} este ${meta.singular}?`}
         onNo={() => setEstadoTarget(null)}
         onYes={() => {
           if (!estadoTarget) return
@@ -279,14 +338,14 @@ function ParamForm({
           <span className="text-brand"> *</span>
         </label>
       )}
-      {row && !row.es_base && (
+      {(!row || !row.es_base) && (
         <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
           <input
             type="checkbox"
             checked={estado}
             onChange={(e) => {
               const v = e.target.checked
-              if (row.estado && !v) onRequestEstado(row, v)
+              if (row && row.estado && !v) onRequestEstado(row, v)
               else setEstado(v)
             }}
           />{" "}

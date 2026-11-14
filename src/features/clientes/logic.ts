@@ -1,8 +1,9 @@
-const E164 = /^\+?[1-9]\d{6,14}$/
+import { validateE164 } from "../../lib/phone-e164"
+
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 export function telefonoValido(t: string): boolean {
-  return E164.test((t || "").trim())
+  return validateE164((t || "").trim())
 }
 
 export function correoValido(t: string): boolean {

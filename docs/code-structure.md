@@ -35,3 +35,7 @@
 - `src/pages/panel-clientes-page.tsx` — directorio, tipos, detalle/Habeas Data (Épica 7)
 - `src/features/clientes/logic.ts` — validación e.164 y correo
 - Ruta `clientes` en `auth-secondary-pages.tsx`
+- `src/pages/panel-proveedores-page.tsx` — directorio de proveedores (Épica 14)
+- `src/pages/panel-eventos-page.tsx` — eventos y novedades (Épica 12)
+- Rutas `proveedores` y `eventos` en `auth-secondary-pages.tsx`
+- `src/features/proveedores/logic.ts`, `src/features/eventos/logic.ts` — validaciones Vitest

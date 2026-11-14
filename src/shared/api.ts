@@ -19,18 +19,52 @@ export function guardarToken(token: string | null): void {
   guardarTokenPersistido(token)
 }
 
-export async function api(path: string, opciones: RequestInit = {}, reintentar = true): Promise<Response> {
-  const headers = new Headers(opciones.headers)
-  if (opciones.body && !(opciones.body instanceof FormData) && !headers.has("Content-Type")) {
+export class ApiTimeoutError extends Error {
+  constructor() {
+    super("La solicitud tardó demasiado. Verifica el listado antes de reintentar.")
+    this.name = "ApiTimeoutError"
+  }
+}
+
+export async function api(
+  path: string,
+  opciones: RequestInit & { timeoutMs?: number } = {},
+  reintentar = true,
+): Promise<Response> {
+  const { timeoutMs, signal: señalExterna, ...resto } = opciones
+  const esArchivo = resto.body instanceof FormData
+  const limite = timeoutMs ?? (esArchivo ? 60000 : resto.method && resto.method !== "GET" ? 20000 : 15000)
+  const controlador = new AbortController()
+  const temporizador = setTimeout(() => controlador.abort(), limite)
+  const cancelarExterna = () => controlador.abort()
+  señalExterna?.addEventListener("abort", cancelarExterna)
+  const headers = new Headers(resto.headers)
+  if (resto.body && !(resto.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json")
   }
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`)
-  const respuesta = await fetch(`${API_URL}${path}`, { ...opciones, headers, credentials: "include" })
-  if (respuesta.status === 401 && reintentar && path !== "/api/v1/auth/refresh" && path !== "/api/v1/auth/login") {
-    const renovado = await renovarUnaVez()
-    if (renovado) return api(path, opciones, false)
+  try {
+    const respuesta = await fetch(`${API_URL}${path}`, {
+      ...resto,
+      headers,
+      credentials: "include",
+      signal: controlador.signal,
+    })
+    if (respuesta.status === 401 && reintentar && path !== "/api/v1/auth/refresh" && path !== "/api/v1/auth/login") {
+      const renovado = await renovarUnaVez()
+      if (renovado) return api(path, resto, false)
+    }
+    return respuesta
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      if (señalExterna?.aborted) throw error
+      throw new ApiTimeoutError()
+    }
+    throw error
+  } finally {
+    clearTimeout(temporizador)
+    señalExterna?.removeEventListener("abort", cancelarExterna)
   }
-  return respuesta
 }
 
 export type ErrorApi = { codigo?: string; mensaje?: string }

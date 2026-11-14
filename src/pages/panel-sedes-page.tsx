@@ -13,6 +13,8 @@ import {
   useDebounced,
   useDo,
 } from "../components/panel/kit"
+import { PhoneInput } from "../components/panel/phone-input"
+import { telefonoValido } from "../features/clientes/logic"
 import { toast } from "../features/en-desarrollo"
 import { api, mensajeDe } from "../shared/api"
 
@@ -246,8 +248,14 @@ function SedeModal({ open, id, onClose, onSaved }: { open: boolean; id: number |
     })()
   }, [open, id, isNew])
 
+  const invalidTel = telefono.trim() && !telefonoValido(telefono)
+
   const guardar = () =>
     run(async () => {
+      if (!telefono.trim() || !telefonoValido(telefono)) {
+        toast("El teléfono ingresado no tiene un formato válido.")
+        return
+      }
       const payload = {
         nombre,
         direccion,
@@ -283,9 +291,7 @@ function SedeModal({ open, id, onClose, onSaved }: { open: boolean; id: number |
       <FieldLabel label="Dirección" required tip="Dirección física para clientes y mapa">
         <input value={direccion} onChange={(e) => setDireccion(e.target.value)} className={input} maxLength={255} placeholder="Calle, número, barrio" />
       </FieldLabel>
-      <FieldLabel label="Teléfono" required tip="Formato internacional, ej. +573001234567">
-        <input value={telefono} onChange={(e) => setTelefono(e.target.value)} className={input} placeholder="+573001234567" />
-      </FieldLabel>
+      <PhoneInput label="Teléfono" required value={telefono} onChange={setTelefono} invalid={invalidTel || !telefono.trim()} placeholder="300 123 4567" />
       <FieldLabel label="WhatsApp (solo dígitos con indicativo)" tip="Contacto para pedidos web de esta sede">
         <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} className={input} placeholder="573001234567" />
       </FieldLabel>

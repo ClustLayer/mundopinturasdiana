@@ -1,6 +1,7 @@
+import { validateE164 } from "../../lib/phone-e164"
+
 const EMAIL = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
 const DOCUMENTO = /^[A-Za-z0-9]{6,15}$/
-const TELEFONO = /^\+?[0-9]+$/
 
 export function correoValido(email: string): boolean {
   const v = email.trim()
@@ -15,7 +16,7 @@ export function documentoValido(documento: string): boolean {
 export function telefonoValido(telefono: string): boolean {
   const v = telefono.trim()
   if (!v) return true
-  return v.length <= 20 && TELEFONO.test(v)
+  return validateE164(v)
 }
 
 export function formularioUsuarioCompleto(datos: {

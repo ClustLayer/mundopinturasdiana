@@ -75,3 +75,15 @@ La demo `MundoPinturasDiana-Demo` no forma parte de este repositorio y no se mod
 - HU 40–41 — pestaña Tipos de cliente (semilla «Común» protegida).
 - HU 42 — detalle con historial y métricas (gerente/administrador).
 - QA — `docs/qa-epic-7.md`. Extras demo — `docs/user-stories-sprint2-extras.md` (S2_13–S2_15).
+
+## Épica 12 — Eventos y novedades (2026-11-12) — **v1.2.4** — **Status:** COMPLETED
+
+- HU 80–81 — `src/pages/panel-eventos-page.tsx` (listado filtrado, modales, desactivación).
+- Sitio público — eventos desde `GET /api/v1/eventos/publicos/`.
+- QA — `docs/qa-epic-12.md`. Extras — S2_16–S2_18.
+
+## Épica 14 — Proveedores e inventario (2026-11-12) — **v1.2.5** — **Status:** COMPLETED
+
+- HU 84–85 — `src/pages/panel-proveedores-page.tsx`.
+- Inventario — combobox `id_proveedor` en `panel-inventario-page.tsx`.
+- QA — `docs/qa-epic-14.md`. Extra — S2_19.

@@ -2,8 +2,6 @@ import { CalendarDays, PartyPopper } from 'lucide-react'
 import { Reveal } from "../ui/reveal"
 import { bogotaDay } from "../../lib/schedule"
 import type { PublicEvent } from "../../lib/public-data"
-import { EnDesarrolloRecuadro } from "../ui/en-desarrollo-recuadro"
-
 const fmt = (iso: string) => new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`))
 const LABEL: Record<string, string> = { promocion: 'Promoción', capacitacion: 'Capacitación', entrega: 'Entrega', festivo: 'Festivo', social: 'Evento social', atipico: 'Especial', otro: 'Evento' }
 
@@ -17,11 +15,7 @@ export function EventsSection({ events, today: serverToday }: { events: PublicEv
         <p className="kicker">Pasa por la tienda</p>
         <h2 id="eventos" className="mt-2 font-display text-4xl font-extrabold text-plum md:text-5xl">Eventos</h2>
       </Reveal>
-      {!events.length ? (
-        <div className="mt-10">
-          <EnDesarrolloRecuadro />
-        </div>
-      ) : list.length ? (
+      {list.length ? (
         <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {list.map((e, i) => (
             <Reveal key={e.id} delay={i * 90}>
