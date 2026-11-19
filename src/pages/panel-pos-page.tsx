@@ -86,6 +86,7 @@ export function PanelPosPage() {
   }, [idSede, qDeb])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota al cambiar sede o búsqueda
     void buscarProductos()
   }, [buscarProductos])
 
