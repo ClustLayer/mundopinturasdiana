@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Eye, Printer, RotateCcw, XCircle } from "lucide-react"
+import { Eye, Printer, RotateCcw, Truck, XCircle } from "lucide-react"
 import { btnGhost, btnPrimary, Empty, FieldLabel, FormAlert, input, Modal, Pager, useDo } from "../components/panel/kit"
 import { puedeAccion } from "../features/accesos/logic"
 import { useAccesos } from "../features/accesos/accesos-provider"
@@ -22,6 +22,7 @@ type Detalle = Factura & {
   lineas: { id_detalle: number; producto: string; cantidad: number; cantidad_devuelta: number; subtotal: number }[]
   pagos: { metodo: string; valor: number; referencia: string }[]
   version_fila: number
+  tipo_venta?: string
 }
 
 const money = (n: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n)
@@ -29,6 +30,7 @@ const money = (n: number) => new Intl.NumberFormat("es-CO", { style: "currency",
 export function PanelVentasPage() {
   const { accionesModulo } = useAccesos()
   const puedeTotal = puedeAccion(accionesModulo("ventas"), "Total")
+  const puedeDomicilio = puedeAccion(accionesModulo("domicilios"), "Crear")
   const [items, setItems] = useState<Factura[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -38,6 +40,8 @@ export function PanelVentasPage() {
   const [anular, setAnular] = useState(false)
   const [motivo, setMotivo] = useState("")
   const [error, setError] = useState("")
+  const [crearDom, setCrearDom] = useState(false)
+  const [domForm, setDomForm] = useState({ direccion: "", telefono_contacto: "", valor_cobrado_cliente: "", valor_pagado_mensajero: "", observaciones: "" })
   const { run, pending } = useDo()
 
   const cargar = useCallback(async () => {
@@ -62,6 +66,31 @@ export function PanelVentasPage() {
     const d = (await r.json()) as { factura: Detalle }
     setDetalle(d.factura)
   }
+
+  const abrirCrearDomicilio = async () => {
+    if (!detalle) return
+    const r = await api(`/api/v1/domicilios/factura/${detalle.id_factura}/precarga/`)
+    if (!r.ok) return toast((await mensajeDe(r)) || "La factura seleccionada no es de tipo Domicilio o ya tiene un domicilio asociado.")
+    const d = (await r.json()) as { direccion: string; telefono_contacto: string }
+    setDomForm({ direccion: d.direccion, telefono_contacto: d.telefono_contacto, valor_cobrado_cliente: "", valor_pagado_mensajero: "", observaciones: "" })
+    setCrearDom(true)
+    setError("")
+  }
+
+  const confirmarDomicilio = () =>
+    run(async () => {
+      if (!detalle) return
+      const r = await api("/api/v1/domicilios/", {
+        method: "POST",
+        body: JSON.stringify({ id_factura: detalle.id_factura, ...domForm }),
+      })
+      if (!r.ok) {
+        setError((await mensajeDe(r)) || "No fue posible crear el domicilio. Intente nuevamente.")
+        return
+      }
+      toast(((await r.json()) as { mensaje: string }).mensaje)
+      setCrearDom(false)
+    })
 
   const confirmarAnular = () =>
     run(async () => {
@@ -158,6 +187,11 @@ export function PanelVentasPage() {
             <button type="button" className={btnGhost} onClick={() => window.print()}>
               <Printer size={16} className="mr-1 inline" /> Reimprimir
             </button>
+            {puedeDomicilio && detalle.estado === "EMITIDA" && (detalle.tipo_venta ?? "").toLowerCase() === "domicilio" && (
+              <button type="button" className={btnPrimary} onClick={() => void abrirCrearDomicilio()}>
+                <Truck size={16} className="mr-1 inline" /> Crear domicilio
+              </button>
+            )}
             {puedeTotal && detalle.estado === "EMITIDA" && (
               <>
                 <button type="button" className={btnGhost} onClick={() => setAnular(true)}>
@@ -169,6 +203,38 @@ export function PanelVentasPage() {
               </>
             )}
           </div>
+          </>
+        )}
+      </Modal>
+
+      <Modal open={crearDom && !!detalle} title="Crear domicilio" onClose={() => setCrearDom(false)}>
+        {detalle && (
+          <>
+            <FieldLabel label="Factura asociada">
+              <input className={input} readOnly value={detalle.consecutivo} />
+            </FieldLabel>
+            <FieldLabel label="Dirección de entrega" required className="mt-3">
+              <input className={input} value={domForm.direccion} onChange={(e) => setDomForm({ ...domForm, direccion: e.target.value })} />
+            </FieldLabel>
+            <FieldLabel label="Teléfono de contacto" className="mt-3">
+              <input className={input} value={domForm.telefono_contacto} onChange={(e) => setDomForm({ ...domForm, telefono_contacto: e.target.value })} />
+            </FieldLabel>
+            <FieldLabel label="Valor cobrado al cliente" required className="mt-3">
+              <input type="number" min={0} step="0.01" className={input} value={domForm.valor_cobrado_cliente} onChange={(e) => setDomForm({ ...domForm, valor_cobrado_cliente: e.target.value })} />
+            </FieldLabel>
+            <FieldLabel label="Valor pagado al mensajero" required className="mt-3">
+              <input type="number" min={0} step="0.01" className={input} value={domForm.valor_pagado_mensajero} onChange={(e) => setDomForm({ ...domForm, valor_pagado_mensajero: e.target.value })} />
+            </FieldLabel>
+            <FieldLabel label="Observaciones" className="mt-3">
+              <textarea className={input} rows={2} value={domForm.observaciones} onChange={(e) => setDomForm({ ...domForm, observaciones: e.target.value })} />
+            </FieldLabel>
+            {error && <FormAlert message={error} />}
+            <div className="mt-4 flex gap-2">
+              <button type="button" className={btnGhost} onClick={() => setCrearDom(false)}>Cancelar</button>
+              <button type="button" className={btnPrimary} disabled={pending || !domForm.direccion.trim()} onClick={() => void confirmarDomicilio()}>
+                Crear domicilio
+              </button>
+            </div>
           </>
         )}
       </Modal>
