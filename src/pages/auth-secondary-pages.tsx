@@ -16,6 +16,7 @@ import { PanelEventosPage } from "./panel-eventos-page"
 import { PanelPosPage } from "./panel-pos-page"
 import { PanelVentasPage } from "./panel-ventas-page"
 import { PanelDomiciliosPage } from "./panel-domicilios-page"
+import { PanelCuentasPage } from "./panel-cuentas-page"
 import { PanelProductosPage } from "./panel-productos-page"
 import { puedeModuloCatalogo } from "../features/accesos/catalogo-panel"
 import { PanelCuentaPage } from "./panel-cuenta-page"
@@ -245,6 +246,7 @@ export function PanelModulePage() {
   if (modulo === "pos" && (puedeModulo("pos") || accesosError)) return <PanelPosPage />
   if (modulo === "ventas" && (puedeModulo("ventas") || accesosError)) return <PanelVentasPage />
   if (modulo === "domicilios" && (puedeModulo("domicilios") || accesosError)) return <PanelDomiciliosPage />
+  if (modulo === "caja" && (puedeModulo("caja") || accesosError)) return <PanelCuentasPage />
   if (modulo === "categorias" && (puedeModuloCatalogo("categorias", puedeModulo) || accesosError))
     return <PanelCatalogoParamPage tipo="categorias" />
   if (modulo === "marcas" && (puedeModuloCatalogo("marcas", puedeModulo) || accesosError)) return <PanelCatalogoParamPage tipo="marcas" />
