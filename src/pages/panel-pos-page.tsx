@@ -14,6 +14,7 @@ type Catalogos = {
   tipos_venta: { id_tipo_venta: number; nombre: string }[]
   metodos_pago: { id_metodo_pago: number; nombre: string }[]
   cuentas_bancarias: { id_cuenta_bancaria: number; label: string }[]
+  mensajeros: { id_mensajero: number; label: string }[]
 }
 
 type ProductoOp = {
@@ -68,7 +69,7 @@ export function PanelPosPage() {
   const [clientesOps, setClientesOps] = useState<{ id: string; label: string; telefono?: string; direccion?: string }[]>([])
   const [requiereFe, setRequiereFe] = useState(false)
   const [esDomicilio, setEsDomicilio] = useState(false)
-  const [dom, setDom] = useState({ nombre: "", telefono: "", direccion: "", fee: "" })
+  const [dom, setDom] = useState({ nombre: "", telefono: "", direccion: "", fee: "", id_mensajero: "", pago_mensajero: "" })
   const [comprador, setComprador] = useState({ nombre: "", documento: "", correo: "" })
   const [notas, setNotas] = useState("")
   const [emitida, setEmitida] = useState<{ consecutivo: string; total: number } | null>(null)
@@ -85,7 +86,7 @@ export function PanelPosPage() {
     void api("/api/v1/ventas/pos/catalogos/").then(async (r) => {
       if (!r.ok) return toast("No fue posible cargar el punto de venta.")
       const d = (await r.json()) as Catalogos
-      setCat({ ...d, cuentas_bancarias: d.cuentas_bancarias ?? [] })
+      setCat({ ...d, cuentas_bancarias: d.cuentas_bancarias ?? [], mensajeros: d.mensajeros ?? [] })
       if (d.sedes[0]) setIdSede(String(d.sedes[0].id_sede))
       if (d.tipos_venta[0]) setIdTipo(String(d.tipos_venta[0].id_tipo_venta))
       const ef = d.metodos_pago.find((m) => m.nombre === "Efectivo")
@@ -198,7 +199,8 @@ export function PanelPosPage() {
     lineas.length > 0 &&
     pagosCubrenTotal(subtotal, totalPagos) &&
     !transferSinCuenta &&
-    (!esDomicilio || (dom.nombre.trim() && dom.telefono.trim() && dom.direccion.trim())) &&
+    (!esDomicilio ||
+      (dom.nombre.trim() && dom.telefono.trim() && dom.direccion.trim() && dom.id_mensajero)) &&
     (!requiereFe || idCliente) &&
     (!requiereFe || (comprador.nombre.trim() && comprador.documento.trim()))
 
@@ -221,7 +223,8 @@ export function PanelPosPage() {
             telefono: dom.telefono,
             direccion: dom.direccion,
             valor_cobrado_cliente: Number(dom.fee) || 0,
-            valor_pagado_mensajero: 0,
+            valor_pagado_mensajero: Number(dom.pago_mensajero) || 0,
+            id_mensajero: Number(dom.id_mensajero),
           }
         : undefined,
       lineas: lineas.map((l) => ({
@@ -253,7 +256,7 @@ export function PanelPosPage() {
       setIdCliente("")
       setEsDomicilio(false)
       setRequiereFe(false)
-      setDom({ nombre: "", telefono: "", direccion: "", fee: "" })
+      setDom({ nombre: "", telefono: "", direccion: "", fee: "", id_mensajero: "", pago_mensajero: "" })
       setComprador({ nombre: "", documento: "", correo: "" })
       setNotas("")
     })
@@ -415,6 +418,18 @@ export function PanelPosPage() {
                   </FieldLabel>
                   <FieldLabel label="Valor del domicilio cobrado (no suma al total de la venta)" className="sm:col-span-2">
                     <input type="number" min={0} className={input} value={dom.fee} onChange={(e) => setDom({ ...dom, fee: e.target.value })} />
+                  </FieldLabel>
+                  <FieldLabel label="Domiciliario (mensajero)" required className="sm:col-span-2">
+                    <select className={input} value={dom.id_mensajero} onChange={(e) => setDom({ ...dom, id_mensajero: e.target.value })}>
+                      <option value="">— Seleccionar mensajero —</option>
+                      {cat?.mensajeros.map((m) => (
+                        <option key={m.id_mensajero} value={m.id_mensajero}>{m.label}</option>
+                      ))}
+                    </select>
+                  </FieldLabel>
+                  <FieldLabel label="Pago al domiciliario (opcional)" className="sm:col-span-2">
+                    <input type="number" min={0} className={input} value={dom.pago_mensajero} onChange={(e) => setDom({ ...dom, pago_mensajero: e.target.value })} />
+                    <span className="mt-1 block text-xs text-ink/55">No entra en ventas ni en gastos del día.</span>
                   </FieldLabel>
                 </div>
               )}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
-import { AlertTriangle, ChevronDown, Pencil, Plus, Truck, UserRound } from "lucide-react"
+import { Pencil, Plus } from "lucide-react"
+import { DomiciliosVistaDemo } from "../components/panel/domicilios-vista-demo"
 import {
   ConfirmDestructiveDialog,
   Empty,
@@ -30,7 +31,10 @@ type Entrega = {
   estado: string
   estado_etiqueta: string
   mensajero: string
+  id_mensajero?: number | null
   fecha_solicitud: string
+  valor_cobrado_cliente: string
+  valor_pagado_mensajero: string
   antiguedad: Antiguedad
   transiciones_permitidas: string[]
   version_fila: number
@@ -57,13 +61,6 @@ type Mensajero = {
 type Opt = { id_mensajero: number; label: string }
 
 type Vista = "bandeja" | "mensajeros" | "historial"
-
-const ESTADO_OPCIONES = [
-  { v: "", l: "Todos (activos)" },
-  { v: "PENDIENTE", l: "Pendiente" },
-  { v: "ASIGNADO", l: "Asignado" },
-  { v: "EN_CAMINO", l: "En camino" },
-]
 
 const ESTADO_HIST = [
   { v: "", l: "Todos" },
@@ -101,14 +98,7 @@ export function PanelDomiciliosPage() {
   const [bandeja, setBandeja] = useState<Entrega[]>([])
   const [bandejaTotal, setBandejaTotal] = useState(0)
   const [bandejaPage, setBandejaPage] = useState(1)
-  const [estadoF, setEstadoF] = useState("")
-  const [mensajeroF, setMensajeroF] = useState("")
-  const [sedeF, setSedeF] = useState("")
-  const [fechaDesde, setFechaDesde] = useState("")
-  const [fechaHasta, setFechaHasta] = useState("")
-  const [orden, setOrden] = useState<"asc" | "desc">("desc")
-  const debEstado = useDebounced(estadoF, 300)
-  const debMensajero = useDebounced(mensajeroF, 300)
+  const [vistaDemo, setVistaDemo] = useState("activos")
 
   const [mensajeros, setMensajeros] = useState<Mensajero[]>([])
   const [mensajerosTotal, setMensajerosTotal] = useState(0)
@@ -123,7 +113,6 @@ export function PanelDomiciliosPage() {
   const [histMensajero, setHistMensajero] = useState("")
 
   const [activos, setActivos] = useState<Opt[]>([])
-  const [sedes, setSedes] = useState<{ id_sede: number; nombre: string }[]>([])
 
   const [asignar, setAsignar] = useState<Entrega | null>(null)
   const [idMensajeroAsign, setIdMensajeroAsign] = useState("")
@@ -131,7 +120,6 @@ export function PanelDomiciliosPage() {
   const [nuevoEstado, setNuevoEstado] = useState("")
   const [obsEstado, setObsEstado] = useState("")
   const [confirmTerminal, setConfirmTerminal] = useState<"ENTREGADO" | "CANCELADO" | null>(null)
-  const [detalle, setDetalle] = useState<Entrega | null>(null)
   const [modalMensajero, setModalMensajero] = useState<"new" | number | null>(null)
   const [formError, setFormError] = useState("")
 
@@ -152,27 +140,15 @@ export function PanelDomiciliosPage() {
     if (r.ok) setActivos(((await r.json()) as { items: Opt[] }).items)
   }, [])
 
-  const cargarSedes = useCallback(async () => {
-    const r = await api("/api/v1/sedes/gestion/?page=1&page_size=200&estado=activo")
-    if (!r.ok) return
-    const d = (await r.json()) as { items: { id_sede: number; nombre: string }[] }
-    setSedes(d.items)
-  }, [])
-
   const cargarBandeja = useCallback(async () => {
-    const qs = new URLSearchParams({ page: String(bandejaPage), page_size: "15", orden })
-    if (debEstado) qs.set("estado", debEstado)
-    if (debMensajero) qs.set("id_mensajero", debMensajero)
-    if (sedeF) qs.set("id_sede", sedeF)
-    if (fechaDesde) qs.set("fecha_desde", fechaDesde)
-    if (fechaHasta) qs.set("fecha_hasta", fechaHasta)
+    const qs = new URLSearchParams({ page: String(bandejaPage), page_size: "15", orden: "desc", vista: vistaDemo })
     const r = await api(`/api/v1/domicilios/bandeja/?${qs}`)
     if (!r.ok) return toast((await mensajeDe(r)) || "No fue posible cargar los domicilios. Intente nuevamente.")
     const d = (await r.json()) as { items: Entrega[]; total: number; mensaje?: string }
     setBandeja(d.items)
     setBandejaTotal(d.total)
     if (d.mensaje) toast(d.mensaje)
-  }, [bandejaPage, debEstado, debMensajero, sedeF, fechaDesde, fechaHasta, orden])
+  }, [bandejaPage, vistaDemo])
 
   const cargarMensajeros = useCallback(async () => {
     const qs = new URLSearchParams({ page: String(mensPage), page_size: "15" })
@@ -199,8 +175,7 @@ export function PanelDomiciliosPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- catálogos auxiliares al montar
     void cargarActivos()
-    void cargarSedes()
-  }, [cargarActivos, cargarSedes])
+  }, [cargarActivos])
 
   useEffect(() => {
     if (vista !== "bandeja") return
@@ -258,12 +233,6 @@ export function PanelDomiciliosPage() {
       void cargarBandeja()
     })
 
-  const abrirDetalle = async (id: number) => {
-    const r = await api(`/api/v1/domicilios/${id}/`)
-    if (!r.ok) return toast((await mensajeDe(r)) || "No fue posible cargar el detalle.")
-    setDetalle(((await r.json()) as { item: Entrega }).item)
-  }
-
   const abrirEditarMensajero = (m: Mensajero) => {
     setFormMens({
       nombre: m.nombre,
@@ -316,7 +285,9 @@ export function PanelDomiciliosPage() {
     <section>
       <p className="font-mono text-xs uppercase tracking-widest text-cyan-dark">Logística</p>
       <h1 className="font-display text-4xl font-extrabold text-plum">Domicilios</h1>
-      <p className="mt-2 max-w-2xl text-sm text-ink/65">Bandeja operativa, mensajeros e historial de entregas.</p>
+      <p className="mt-2 max-w-2xl text-sm text-ink/65">
+        Los domicilios nacen en el punto de venta; aquí solo se gestionan: asignar domiciliario y avanzar el estado.
+      </p>
 
       <nav className="mt-6 flex flex-wrap gap-2" aria-label="Secciones de domicilios">
         {tabs.map((t) => (
@@ -334,102 +305,17 @@ export function PanelDomiciliosPage() {
 
       {vista === "bandeja" && (
         <>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <FieldLabel label="Estado">
-              <select className={input} value={estadoF} onChange={(e) => { setBandejaPage(1); setEstadoF(e.target.value) }}>
-                {ESTADO_OPCIONES.map((o) => (
-                  <option key={o.v || "all"} value={o.v}>{o.l}</option>
-                ))}
-              </select>
-            </FieldLabel>
-            <FieldLabel label="Mensajero">
-              <select className={input} value={mensajeroF} onChange={(e) => { setBandejaPage(1); setMensajeroF(e.target.value) }}>
-                <option value="">Todos</option>
-                {activos.map((m) => (
-                  <option key={m.id_mensajero} value={String(m.id_mensajero)}>{m.label}</option>
-                ))}
-              </select>
-            </FieldLabel>
-            <FieldLabel label="Sede">
-              <select className={input} value={sedeF} onChange={(e) => { setBandejaPage(1); setSedeF(e.target.value) }}>
-                <option value="">Todas</option>
-                {sedes.map((s) => (
-                  <option key={s.id_sede} value={String(s.id_sede)}>{s.nombre}</option>
-                ))}
-              </select>
-            </FieldLabel>
-            <FieldLabel label="Orden por solicitud">
-              <select className={input} value={orden} onChange={(e) => setOrden(e.target.value as "asc" | "desc")}>
-                <option value="desc">Más recientes primero</option>
-                <option value="asc">Más antiguos primero</option>
-              </select>
-            </FieldLabel>
-            <FieldLabel label="Desde">
-              <input type="date" className={input} value={fechaDesde} onChange={(e) => { setBandejaPage(1); setFechaDesde(e.target.value) }} />
-            </FieldLabel>
-            <FieldLabel label="Hasta">
-              <input type="date" className={input} value={fechaHasta} onChange={(e) => { setBandejaPage(1); setFechaHasta(e.target.value) }} />
-            </FieldLabel>
-          </div>
-
-          <div className="mt-6 overflow-x-auto rounded-2xl border-2 border-plum/10 bg-white">
-            <table className="w-full min-w-[900px] text-left text-sm">
-              <thead className="border-b border-plum/10 bg-paper/80 text-xs uppercase tracking-wide text-ink/60">
-                <tr>
-                  <th className="p-3">Factura</th>
-                  <th className="p-3">Cliente</th>
-                  <th className="p-3">Dirección</th>
-                  <th className="p-3">Teléfono</th>
-                  <th className="p-3">Estado</th>
-                  <th className="p-3">Mensajero</th>
-                  <th className="p-3">Solicitud</th>
-                  <th className="p-3">Antigüedad</th>
-                  <th className="p-3">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bandeja.map((e) => (
-                  <tr key={e.id_entrega} className="border-b border-plum/5">
-                    <td className="p-3 font-mono font-semibold">{e.consecutivo_factura}</td>
-                    <td className="p-3">{e.cliente}</td>
-                    <td className="p-3 max-w-[12rem] truncate" title={e.direccion}>{e.direccion}</td>
-                    <td className="p-3">{e.telefono_contacto || "—"}</td>
-                    <td className="p-3">{estadoBadge(e.estado, e.estado_etiqueta)}</td>
-                    <td className="p-3">{e.mensajero || <span className="text-ink/45">Sin asignar</span>}</td>
-                    <td className="p-3 whitespace-nowrap">{new Date(e.fecha_solicitud).toLocaleString("es-CO")}</td>
-                    <td className="p-3">
-                      <span className="inline-flex items-center gap-1 font-semibold">
-                        {e.antiguedad.etiqueta}
-                        {e.antiguedad.alerta_antiguedad && (
-                          <span title="Más de 1 hora en bandeja">
-                            <AlertTriangle size={14} className="text-brand" aria-label="Antigüedad mayor a una hora" />
-                          </span>
-                        )}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      <div className="flex flex-wrap gap-1">
-                        {puedeEditar && (
-                          <>
-                            <button type="button" className="rounded-lg p-2 hover:bg-plum/5" title="Asignar mensajero" onClick={() => { setAsignar(e); setIdMensajeroAsign(""); setFormError("") }}>
-                              <UserRound size={16} />
-                            </button>
-                            <button type="button" className="rounded-lg p-2 hover:bg-plum/5" title="Cambiar estado" onClick={() => { setCambiarEstado(e); setNuevoEstado(""); setObsEstado(""); setFormError("") }}>
-                              <Truck size={16} />
-                            </button>
-                          </>
-                        )}
-                        <button type="button" className="rounded-lg p-2 hover:bg-plum/5" title="Ver detalle" onClick={() => void abrirDetalle(e.id_entrega)}>
-                          <ChevronDown size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {!bandeja.length && <Empty text="No hay domicilios pendientes." />}
-          </div>
+          <DomiciliosVistaDemo
+            rows={bandeja}
+            vista={vistaDemo}
+            onVista={(v) => {
+              setVistaDemo(v)
+              setBandejaPage(1)
+            }}
+            canWrite={puedeEditar}
+            activos={activos}
+            onReload={() => void cargarBandeja()}
+          />
           <Pager page={bandejaPage} total={bandejaTotal} totalPages={Math.max(1, Math.ceil(bandejaTotal / 15))} onPage={setBandejaPage} />
         </>
       )}
@@ -610,26 +496,6 @@ export function PanelDomiciliosPage() {
         onCancel={() => setConfirmTerminal(null)}
         onConfirm={() => void aplicarEstado("ENTREGADO")}
       />
-
-      <Modal open={!!detalle} title={detalle ? `Domicilio ${detalle.consecutivo_factura}` : "Detalle"} onClose={() => setDetalle(null)}>
-        {detalle && (
-          <>
-            <p className="text-sm text-ink/70">{detalle.direccion} · {detalle.telefono_contacto || "Sin teléfono"}</p>
-            {detalle.historial?.length ? (
-              <ul className="mt-4 space-y-2 text-sm">
-                {detalle.historial.map((h, i) => (
-                  <li key={i} className="rounded-lg border border-plum/10 p-2">
-                    {new Date(h.fecha_hora).toLocaleString("es-CO")} · {(h.estado_anterior ?? "—").replace(/_/g, " ")} → <b>{h.estado_nuevo.replace(/_/g, " ")}</b>
-                    {h.observaciones && <span className="block text-xs text-ink/60">{h.observaciones}</span>}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-4 text-sm text-ink/60">Sin historial de estados.</p>
-            )}
-          </>
-        )}
-      </Modal>
 
       <Modal open={modalMensajero !== null} title={modalMensajero === "new" ? "Crear mensajero" : "Editar mensajero"} onClose={() => setModalMensajero(null)}>
         <div className="grid gap-3 sm:grid-cols-2">
