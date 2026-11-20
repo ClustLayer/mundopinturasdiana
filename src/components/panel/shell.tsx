@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
+  Award,
   BarChart3,
   Boxes,
   CalendarCheck,
@@ -20,6 +21,7 @@ import {
   PanelLeftOpen,
   Receipt,
   ReceiptText,
+  Shapes,
   ShieldCheck,
   ShoppingBag,
   Store,
@@ -33,6 +35,7 @@ import {
 import { Navigate } from "react-router-dom"
 import { MSG, calcularAvisoMs, rutaDeRol } from "../../features/auth/logic"
 import { useAccesos } from "../../features/accesos/accesos-provider"
+import { puedeModuloCatalogo } from "../../features/accesos/catalogo-panel"
 import { api, mensajeDe, renovarUnaVez } from "../../shared/api"
 import { GlobalTooltips } from "../ui/global-tooltips"
 import { useApp } from "../../app/providers"
@@ -56,6 +59,8 @@ const ICONS: Record<string, LucideIcon> = {
   facturacion: FileCheck2,
   conceptos: ReceiptText,
   categorias: Tags,
+  marcas: Award,
+  tipos_producto: Shapes,
   promociones: Gift,
   auditoria: History,
   analitica: BarChart3,
@@ -73,6 +78,8 @@ const ORDER = [
   "conceptos",
   "productos",
   "categorias",
+  "marcas",
+  "tipos_producto",
   "inventario",
   "clientes",
   "proveedores",
@@ -91,6 +98,8 @@ const LABELS: Record<string, string> = {
   permisos: "Permisos",
   sedes: "Sedes",
   categorias: "Categorías de producto",
+  marcas: "Marcas",
+  tipos_producto: "Tipos de producto",
   productos: "Productos",
   inventario: "Inventario",
   clientes: "Clientes",
@@ -235,11 +244,13 @@ export function PanelShell({ children }: { children: ReactNode }) {
   if (sesion.requiere2fa) return <Navigate to="/verificacion" replace />
 
   const base = rutaDeRol(sesion.rol)
+  const visibleModulo = (m: string) => {
+    if (m === "permisos" && sesion?.rol !== "Administrador") return false
+    if (m === "categorias" || m === "marcas" || m === "tipos_producto") return puedeModuloCatalogo(m, puedeModulo)
+    return puedeModulo(m)
+  }
   const items = [
-    ...ORDER.filter((m) => {
-      if (m === "permisos" && sesion?.rol !== "Administrador") return false
-      return puedeModulo(m)
-    }).map((m) => ({ key: m, label: LABELS[m], href: m === "resumen" ? base : `${base}/${m}` })),
+    ...ORDER.filter(visibleModulo).map((m) => ({ key: m, label: LABELS[m], href: m === "resumen" ? base : `${base}/${m}` })),
     { key: "cuenta", label: LABELS.cuenta, href: `${base}/cuenta` },
   ]
   const user = { name: sesion.nombre, role: sesion.rol.toLowerCase() }

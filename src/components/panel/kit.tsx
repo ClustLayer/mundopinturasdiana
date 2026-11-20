@@ -73,7 +73,7 @@ export function Modal({
         if (e.target === e.currentTarget) onClose()
       }}
       aria-labelledby={headingId}
-      className={`m-auto w-[calc(100%-2rem)] ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl border-2 border-plum bg-white p-0 text-ink shadow-[8px_8px_0_0_var(--color-plum)] backdrop:bg-plum/50 backdrop:backdrop-blur-sm`}
+      className={`m-auto w-[calc(100%-2rem)] overflow-hidden ${wide ? "max-w-3xl" : "max-w-md"} rounded-2xl border-2 border-plum bg-white p-0 text-ink shadow-[8px_8px_0_0_var(--color-plum)] backdrop:bg-plum/50 backdrop:backdrop-blur-sm`}
     >
       {open && (
         <div ref={contentRef} className="max-h-[85dvh] overflow-y-auto p-6">
@@ -95,6 +95,15 @@ export function Modal({
 const btn = "inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition disabled:opacity-50 focus-visible:outline-2"
 export const btnPrimary = `${btn} bg-brand text-white shadow-[3px_3px_0_0_var(--color-plum)] hover:-translate-y-0.5 hover:bg-brand-dark`
 export const btnGhost = `${btn} border-2 border-plum/20 text-plum hover:bg-plum-soft`
+
+export function FormAlert({ message, id }: { message: string; id?: string }) {
+  if (!message) return null
+  return (
+    <p role="alert" id={id} className="rounded-xl border-2 border-brand bg-brand/5 p-3 text-sm font-medium text-brand-dark">
+      {message}
+    </p>
+  )
+}
 
 export function FieldLabel({
   label,
@@ -331,6 +340,8 @@ export function ConflictDialog({
 export const input =
   "mt-1.5 w-full rounded-xl border-2 border-plum/15 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:border-cyan disabled:bg-ink/5"
 
+export const inputInvalid = `${input} !border-brand ring-2 ring-brand/25`
+
 export function Badge({ value }: { value: string }) {
   const tono =
     value === "Administrador" || value === "Activo"
@@ -396,6 +407,70 @@ export function Pager({
         </div>
       )}
     </nav>
+  )
+}
+
+export function SearchCombobox({
+  label,
+  required,
+  value,
+  onChange,
+  options,
+  placeholder = "Buscar…",
+  invalid,
+}: {
+  label: string
+  required?: boolean
+  value: string
+  onChange: (id: string) => void
+  options: { id: string; label: string; hint?: string }[]
+  placeholder?: string
+  invalid?: boolean
+}) {
+  const [q, setQ] = useState("")
+  const [open, setOpen] = useState(false)
+  const selected = options.find((o) => o.id === value)
+  const filtered = options.filter((o) => {
+    const t = q.trim().toLowerCase()
+    if (!t) return true
+    return o.label.toLowerCase().includes(t) || (o.hint || "").toLowerCase().includes(t)
+  })
+  return (
+    <FieldLabel label={label} required={required} className="relative">
+      <input
+        className={invalid ? inputInvalid : input}
+        value={open ? q : selected?.label ?? ""}
+        placeholder={placeholder}
+        onChange={(e) => {
+          setQ(e.target.value)
+          setOpen(true)
+          if (!e.target.value) onChange("")
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+      />
+      {open && filtered.length > 0 && (
+        <ul className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border-2 border-plum/15 bg-white shadow-lg" role="listbox">
+          {filtered.slice(0, 40).map((o) => (
+            <li key={o.id}>
+              <button
+                type="button"
+                className="block w-full px-3 py-2 text-left text-sm hover:bg-plum-soft"
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  onChange(o.id)
+                  setQ("")
+                  setOpen(false)
+                }}
+              >
+                <span className="font-semibold">{o.label}</span>
+                {o.hint && <span className="ml-2 text-xs text-ink/50">{o.hint}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </FieldLabel>
   )
 }
 

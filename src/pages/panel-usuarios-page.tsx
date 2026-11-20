@@ -18,7 +18,10 @@ import {
   useDo,
 } from "../components/panel/kit"
 import { MSG } from "../features/usuarios/messages"
-import { formularioUsuarioCompleto } from "../features/usuarios/logic"
+import { RolBadge } from "../features/auditoria/accion-badge"
+import { formularioUsuarioCompleto, telefonoValido } from "../features/usuarios/logic"
+import { BotonWhatsApp } from "../components/panel/boton-whatsapp"
+import { PhoneInput } from "../components/panel/phone-input"
 import { toast } from "../features/en-desarrollo"
 import { MSG_TRANSVERSAL } from "../features/transversal/messages"
 import { api, cuerpoError, mensajeDe } from "../shared/api"
@@ -28,6 +31,7 @@ type Fila = {
   nombre_completo: string
   documento: string
   email: string
+  telefono?: string
   rol: string
   estado: string
   ultimo_acceso: string | null
@@ -202,10 +206,11 @@ export function PanelUsuariosPage() {
                   <td className="px-4 py-3 font-semibold">{u.nombre_completo}</td>
                   <td className="px-4 py-3">{u.documento}</td>
                   <td className="px-4 py-3">{u.email}</td>
-                  <td className="px-4 py-3"><Badge value={u.rol} /></td>
+                  <td className="px-4 py-3"><RolBadge rol={u.rol} /></td>
                   <td className="px-4 py-3"><Badge value={u.estado} /></td>
                   <td className="px-4 py-3">{u.ultimo_acceso ? new Date(u.ultimo_acceso).toLocaleString() : "—"}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-right">
+                    <BotonWhatsApp telefono={u.telefono ?? ""} nombre={u.nombre_completo} />
                     {puedeEditar && (
                       <button type="button" aria-label={`Editar ${u.nombre_completo}`} className="rounded-lg p-2 text-plum hover:bg-plum-soft" onClick={() => irEditar(u.id_usuario)}>
                         <Pencil size={16} />
@@ -472,6 +477,10 @@ function UsuarioFormModal({
     run(async () => {
       setError("")
       setConfirmRol(false)
+      if (telefono.trim() && !telefonoValido(telefono)) {
+        setError(MSG.telefonoInvalido)
+        return
+      }
       const payload = {
         nombre,
         apellido,
@@ -551,28 +560,32 @@ function UsuarioFormModal({
       >
         <label className="block text-sm font-semibold">
           Nombre<span className="text-brand"> *</span>
-          <input required value={nombre} onChange={(e) => setNombre(e.target.value)} className={input} />
+          <input required value={nombre} onChange={(e) => setNombre(e.target.value)} className={input} placeholder="Ej. Ana" />
         </label>
         <label className="block text-sm font-semibold">
           Apellido<span className="text-brand"> *</span>
-          <input required value={apellido} onChange={(e) => setApellido(e.target.value)} className={input} />
+          <input required value={apellido} onChange={(e) => setApellido(e.target.value)} className={input} placeholder="Ej. García" />
         </label>
         <label className="block text-sm font-semibold">
           Documento<span className="text-brand"> *</span>
-          <input required value={documento} onChange={(e) => setDocumento(e.target.value)} className={input} />
+          <input required value={documento} onChange={(e) => setDocumento(e.target.value)} className={input} placeholder="Ej. 1001234567" />
         </label>
-        <label className="block text-sm font-semibold">
-          Teléfono
-          <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className={input} />
-        </label>
+        <PhoneInput
+          className="sm:col-span-2"
+          label="Teléfono"
+          value={telefono}
+          onChange={setTelefono}
+          invalid={Boolean(telefono.trim()) && !telefonoValido(telefono)}
+          placeholder="300 123 4567"
+        />
         <label className="block text-sm font-semibold sm:col-span-2">
           Correo electrónico<span className="text-brand"> *</span>
-          <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={input} />
+          <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={input} placeholder="usuario@empresa.com" />
         </label>
         <label className="block text-sm font-semibold">
           Rol<span className="text-brand"> *</span>
           <select required value={idRol} onChange={(e) => setIdRol(e.target.value)} className={input}>
-            <option value="">—</option>
+            <option value="">Seleccione…</option>
             {roles.map((r) => (
               <option key={r.id_rol} value={String(r.id_rol)}>{r.nombre}</option>
             ))}
@@ -581,7 +594,7 @@ function UsuarioFormModal({
         <label className="block text-sm font-semibold">
           Sede asignada<span className="text-brand"> *</span>
           <select required value={idSede} onChange={(e) => setIdSede(e.target.value)} className={input}>
-            <option value="">—</option>
+            <option value="">Seleccione…</option>
             {sedes.map((s) => (
               <option key={s.id_sede} value={String(s.id_sede)}>{s.nombre}</option>
             ))}

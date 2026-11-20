@@ -27,4 +27,15 @@
 - `src/components/panel/kit.tsx` — Confirm, `ConfirmDestructiveDialog`, `ConflictDialog`, Modal con foco atrapado opcional, Pager, useDebounced, Badge
 - `src/pages/panel-auditoria-page.tsx` — HU 82 (bitácora, filtros, detalle)
 - `src/features/transversal/messages.ts` — textos HU 96–97 / auditoría
-- Rutas en `auth-secondary-pages.tsx`: segmentos `usuarios`, `auditoria` (admin/gerente con permiso), `cuenta`
+- Rutas en `auth-secondary-pages.tsx`: segmentos `usuarios`, `auditoria` (admin/gerente con permiso), `cuenta`, `productos`, `categorias`
+- `src/pages/panel-productos-page.tsx` — listado, formulario, historial, importación y parámetros
+- `NoEncontrada` — página 404 con gotas de pintura animadas
+- `src/pages/panel-inventario-page.tsx` — existencias, kardex y movimientos (Épica 6)
+- Ruta `inventario` en `auth-secondary-pages.tsx`
+- `src/pages/panel-clientes-page.tsx` — directorio, tipos, detalle/Habeas Data (Épica 7)
+- `src/features/clientes/logic.ts` — validación e.164 y correo
+- Ruta `clientes` en `auth-secondary-pages.tsx`
+- `src/pages/panel-proveedores-page.tsx` — directorio de proveedores (Épica 14)
+- `src/pages/panel-eventos-page.tsx` — eventos y novedades (Épica 12)
+- Rutas `proveedores` y `eventos` en `auth-secondary-pages.tsx`
+- `src/features/proveedores/logic.ts`, `src/features/eventos/logic.ts` — validaciones Vitest

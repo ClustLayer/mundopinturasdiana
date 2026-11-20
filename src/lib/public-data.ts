@@ -1,4 +1,5 @@
 import { bogotaDay } from "./schedule"
+import { API_URL } from "../shared/api"
 
 export type PublicProduct = {
   id: number | string
@@ -106,6 +107,36 @@ export function getPromotions(): PublicPromotion[] {
 
 export function getPublicEvents(): PublicEvent[] {
   return []
+}
+
+type EventoPublicoApi = {
+  id_evento: number
+  titulo: string
+  tipo: string
+  descripcion: string
+  imagen_url?: string
+  fecha_inicio: string
+  fecha_fin?: string | null
+}
+
+/** Eventos visibles en el sitio (sin autenticación). */
+export async function fetchPublicEvents(): Promise<PublicEvent[]> {
+  try {
+    const r = await fetch(`${API_URL}/api/v1/eventos/publicos/`)
+    if (!r.ok) return []
+    const body = (await r.json()) as { items?: EventoPublicoApi[] }
+    return (body.items ?? []).map((e) => ({
+      id: String(e.id_evento),
+      title: e.titulo,
+      type: e.tipo,
+      description: e.descripcion,
+      image: e.imagen_url || "",
+      startDate: e.fecha_inicio.slice(0, 10),
+      endDate: (e.fecha_fin || e.fecha_inicio).slice(0, 10),
+    }))
+  } catch {
+    return []
+  }
 }
 
 const IMG = {

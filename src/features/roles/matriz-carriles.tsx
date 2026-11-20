@@ -1,3 +1,4 @@
+import { memo } from "react"
 import {
   Ban,
   Circle,
@@ -47,7 +48,7 @@ function iconoResumen(activas: string[]) {
   )
 }
 
-export function MatrizCarriles({
+export const MatrizCarriles = memo(function MatrizCarriles({
   modulos,
   onChange,
 }: {
@@ -146,7 +147,7 @@ export function MatrizCarriles({
       </table>
     </div>
   )
-}
+})
 
 export function aplanarDetalle(modulos: ModuloMatriz[]): DetallePermiso[] {
   return modulos.flatMap((m) => m.detalle)

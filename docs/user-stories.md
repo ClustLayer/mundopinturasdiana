@@ -55,3 +55,35 @@ La demo `MundoPinturasDiana-Demo` no forma parte de este repositorio y no se mod
 - HU_MPDW_01_96 — `ConfirmDestructiveDialog` en `components/panel/kit.tsx` (foco atrapado vía `Modal`); motivo máx. 255 cuando aplica; integrado en `panel-usuarios-page.tsx`.
 - HU_MPDW_01_97 — `ConflictDialog`, manejo HTTP 409 y borrador en `sessionStorage` en flujo de edición de usuario.
 - Mensajes transversales — `src/features/transversal/messages.ts`.
+
+## Épica 5 — Catálogo de productos (2026-11-11) — **Status:** COMPLETED
+
+- HU 22–26 y 29–30 — `src/pages/panel-productos-page.tsx` (listado, alta, edición, estado, historial, importación y exportación).
+- HU 27–28 — `panel-catalogo-param-page.tsx` (categorías, marcas, tipos en menú separado).
+- Extras de sprint 2 — `docs/user-stories-sprint2-extras.md`, `docs/qa-epic-5.md`, UX formularios (`FormAlert`, placeholders, validación en modal).
+- Ruta inexistente — `NoEncontrada` con animación de marca.
+
+## Épica 6 — Inventario y kardex (2026-11-11) — **Status:** COMPLETED
+
+- HU 31–36 — `src/pages/panel-inventario-page.tsx` (existencias, kardex, entrada, ajuste, traslado, alerta de mínimo).
+- Cierre de modales — `mensajeDe` clona la respuesta en `src/shared/api.ts`; un solo scroll en `Modal` (`kit.tsx`).
+- QA — `docs/qa-epic-6.md`. Extras — `docs/user-stories-sprint2-extras.md`.
+
+## Épica 7 — Directorio de clientes y Habeas Data (2026-11-12) — **v1.2.3** — **Status:** COMPLETED
+
+- HU 37–39 — `src/pages/panel-clientes-page.tsx` (crear/editar con Habeas Data, listado, WhatsApp, desactivación).
+- HU 40–41 — pestaña Tipos de cliente (semilla «Común» protegida).
+- HU 42 — detalle con historial y métricas (gerente/administrador).
+- QA — `docs/qa-epic-7.md`. Extras demo — `docs/user-stories-sprint2-extras.md` (S2_13–S2_15).
+
+## Épica 12 — Eventos y novedades (2026-11-12) — **v1.2.4** — **Status:** COMPLETED
+
+- HU 80–81 — `src/pages/panel-eventos-page.tsx` (listado filtrado, modales, desactivación).
+- Sitio público — eventos desde `GET /api/v1/eventos/publicos/`.
+- QA — `docs/qa-epic-12.md`. Extras — S2_16–S2_18.
+
+## Épica 14 — Proveedores e inventario (2026-11-12) — **v1.2.5** — **Status:** COMPLETED
+
+- HU 84–85 — `src/pages/panel-proveedores-page.tsx`.
+- Inventario — combobox `id_proveedor` en `panel-inventario-page.tsx`.
+- QA — `docs/qa-epic-14.md`. Extra — S2_19.

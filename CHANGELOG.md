@@ -1,6 +1,6 @@
 # Changelog
 
-Versionado del portal (**major.sprint.epica**):
+Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprint 2, tercer dígito = épica secuencial del sprint).
 
 | Versión | Alcance |
 |---------|---------|
@@ -10,8 +10,45 @@ Versionado del portal (**major.sprint.epica**):
 | **1.1.3** | Sprint 1 · Épica 3 (roles y permisos) |
 | **1.1.4** | Sprint 1 · Épica 4 (sedes públicas/admin) |
 | **1.1.5** | Sprint 1 · Cierre (Épicas 13 y 18 + vínculo sede principal) |
+| **1.2.1** | Sprint 2 · Épica 5 (catálogo de productos) |
+| **1.2.2** | Sprint 2 · Épica 6 (inventario y kardex) + cierre de modales |
+| **1.2.3** | Sprint 2 · Épica 7 (directorio de clientes y Habeas Data) |
+| **1.2.4** | Sprint 2 · Épica 12 (eventos y novedades) |
+| **1.2.5** | Sprint 2 · Épica 14 (proveedores e inventario) |
 
 ---
+
+## 2026-11-13 — Rendimiento y correcciones (iteración 13)
+
+- Timeout HTTP, saludo Bogotá, WhatsApp, teléfono legible y permisos sin catálogo editable.
+- Detalle: `docs/correcciones-iteracion-13.md`.
+
+## 2026-11-12 — Mejoras integrales Sprint 2 (iteración 12)
+
+- `PhoneInput`, resumen condicionado, productos/export, parámetros catálogo, inventario, colores rol/auditoría/tipos cliente, eventos landing.
+- QA: `docs/correcciones-iteracion-12.md`, `src/lib/phone-e164.test.ts`.
+
+## 2026-11-12 — v1.2.5 Épica 14 (proveedores e inventario)
+
+- Panel Proveedores y combobox en inventario (`id_proveedor`).
+- QA: `docs/qa-epic-14.md`.
+
+## 2026-11-12 — v1.2.4 Épica 12 (eventos y novedades)
+
+- Panel Eventos y feed público en home.
+- QA: `docs/qa-epic-12.md`.
+
+## 2026-11-12 — v1.2.3 Épica 7 (directorio de clientes y Habeas Data)
+
+- Panel Clientes con fidelidad demo: listado, filtros, WhatsApp, modales crear/editar.
+- Tipos de cliente y detalle con historial/métricas (gerente/admin).
+- Habeas Data: consentimiento, texto legal y fecha automática.
+- QA: `docs/qa-epic-7.md`; pruebas de validación e.164/correo.
+
+## 2026-11-11 — v1.2.2 Épica 6 (inventario demo)
+
+- Entrada Manual, Detector USB y Carga rápida; badges y kardex con costo.
+- Origen comprado/fabricado en formulario de productos.
 
 ## 2026-11-06 — v1.1.5 Cierre Sprint 1 (Épicas 13 y 18)
 

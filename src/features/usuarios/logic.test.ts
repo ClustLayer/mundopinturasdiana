@@ -5,7 +5,7 @@ describe("usuarios logic", () => {
   it("valida documento y telefono", () => {
     expect(documentoValido("ABC123456")).toBe(true)
     expect(documentoValido("12")).toBe(false)
-    expect(telefonoValido("3001234567")).toBe(true)
+    expect(telefonoValido("+573001234567")).toBe(true)
     expect(telefonoValido("30-1")).toBe(false)
     expect(correoValido("a@b.co")).toBe(true)
   })

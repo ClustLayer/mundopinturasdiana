@@ -67,3 +67,53 @@
 ### Evidencia
 - `pnpm run calidad` (o `npx pnpm@10.15.0 run calidad`): lint sin errores, tsc, vitest, build, Playwright.
 - Primera instalación de navegadores: `npx playwright install chromium`.
+
+## Épica 5 — Catálogo
+**Status:** COMPLETED
+**Date:** 2026-11-11
+
+- Pantallas de productos y parámetros alineadas a los mensajes de las HU 22–30.
+- Matriz de permisos memorizada para no re-renderizar filas sin cambio de datos.
+- 404 de marca en `NoEncontrada`.
+
+## Épica 6 — Inventario y kardex
+**Status:** COMPLETED
+**Date:** 2026-11-11
+**Branch:** `epica-6-inventario-kardex`
+
+- Pantalla de inventario alineada al módulo demo (existencias por sede, kardex, entrada, ajuste y traslado).
+- El cliente HTTP clona el cuerpo antes de leer el mensaje de error, para que un 201 cierre el modal.
+- El diálogo del kit no suma un segundo scroll.
+
+## Épica 7 — Directorio de clientes y Habeas Data
+**Status:** COMPLETED  
+**Date:** 2026-11-12  
+**Branch:** `epica-7-directorio-clientes-habeas-data`  
+**Version:** v1.2.3
+
+- Panel demo-first: listado, filtros, WhatsApp, modales, tipos y detalle con métricas.
+- Validaciones cliente: `features/clientes/logic.ts` + tests Vitest.
+- `pnpm run calidad` en verde.
+
+## Épica 12 — Eventos y novedades
+**Status:** COMPLETED  
+**Date:** 2026-11-12  
+**Branch:** `epicas-12-14-eventos-proveedores`  
+**Version:** v1.2.4
+
+- `panel-eventos-page.tsx`, eventos públicos en home.
+
+## Épica 14 — Proveedores e inventario
+**Status:** COMPLETED  
+**Date:** 2026-11-12  
+**Branch:** `epicas-12-14-eventos-proveedores`  
+**Version:** v1.2.5
+
+- `panel-proveedores-page.tsx`, combobox de proveedor en inventario; Vitest en verde.
+
+## Iteración 12 — Mejoras integrales Sprint 2 (frontend)
+**Status:** COMPLETED  
+**Date:** 2026-11-12  
+**Branch:** `epicas-12-14-eventos-proveedores`
+
+- Ver `docs/correcciones-iteracion-12.md`. `corepack pnpm run calidad` equivalente en verde (20 Vitest, 2 Playwright).

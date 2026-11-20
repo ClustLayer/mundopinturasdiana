@@ -6,7 +6,8 @@ import { puedeAccion } from "../features/accesos/logic"
 import { toast } from "../features/en-desarrollo"
 import { MSG_TRANSVERSAL } from "../features/transversal/messages"
 import { api } from "../shared/api"
-import { Badge, Empty, Modal, Pager, btnGhost, btnPrimary, input, useDebounced } from "../components/panel/kit"
+import { Empty, Modal, Pager, btnGhost, btnPrimary, input, useDebounced } from "../components/panel/kit"
+import { AccionBadge } from "../features/auditoria/accion-badge"
 
 type UsuarioAnidado = { id_usuario: number | null; nombre: string; email: string | null }
 
@@ -372,7 +373,7 @@ export function PanelAuditoriaPage() {
                     <td className="whitespace-nowrap px-4 py-3">{formatDt(r.fecha_hora)}</td>
                     <td className="px-4 py-3">{r.usuario.nombre || r.usuario.email || "—"}</td>
                     <td className="px-4 py-3">
-                      <Badge value={r.accion} />
+                      <AccionBadge accion={r.accion} entidad={r.entidad} />
                     </td>
                     <td className="px-4 py-3">{r.entidad}</td>
                     <td className="px-4 py-3">{r.id_entidad}</td>
