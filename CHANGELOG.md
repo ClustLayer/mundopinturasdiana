@@ -16,6 +16,21 @@ Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprin
 | **1.2.4** | Sprint 2 · Épica 12 (eventos y novedades) |
 | **1.2.5** | Sprint 2 · Épica 14 (proveedores e inventario) |
 | **1.3.1** | Sprint 3 · Épica 8 (punto de venta y facturación) |
+| **1.3.2** | Sprint 3 · Épica 9 (domicilios y mensajería) |
+
+---
+
+## 2026-11-19 — v1.3.2 Épica 9 — POS y cuentas
+
+- POS alineado a demo: descuentos, domicilio, FE, cobro mixto y emitir deshabilitado hasta cubrir total.
+- Sección **Cuentas** en sidebar; transferencias con cuentas sembradas.
+- Enlace «Nuevo cliente» corregido (sin 404).
+
+## 2026-11-19 — v1.3.2 Épica 9 (domicilios y mensajería)
+
+- `panel-domicilios-page.tsx`: bandeja (alerta >1h), mensajeros, historial, modales HU 53–54.
+- Ruta `domicilios` en panel; crear domicilio desde detalle de factura tipo Domicilio.
+- QA: `docs/qa/epic-9.md` (backend).
 
 ---
 

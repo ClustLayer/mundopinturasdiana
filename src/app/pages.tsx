@@ -15,3 +15,4 @@ export {
   NoEncontrada,
 } from "../pages/auth-secondary-pages"
 export { PanelAuditoriaPage } from "../pages/panel-auditoria-page"
+export { PanelVentaImprimirPage } from "../pages/panel-venta-imprimir-page"

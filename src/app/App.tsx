@@ -10,6 +10,7 @@ import {
   NuevaContrasenaPage,
   PanelModulePage,
   PanelResumenPage,
+  PanelVentaImprimirPage,
   RecuperarPage,
   SedesPage,
   SitemapPage,
@@ -38,6 +39,7 @@ export function App() {
       <Route path="/panel/administrador" element={<PanelShell><PanelResumenPage /></PanelShell>} />
       <Route path="/panel/gerente" element={<PanelShell><PanelResumenPage /></PanelShell>} />
       <Route path="/panel/empleado" element={<PanelShell><PanelResumenPage /></PanelShell>} />
+      <Route path="/panel/:rol/imprimir/:id" element={<PanelShell><PanelVentaImprimirPage /></PanelShell>} />
       <Route path="/panel/:rol/:modulo" element={<PanelShell><PanelModulePage /></PanelShell>} />
       <Route path="/registro" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<NoEncontrada />} />

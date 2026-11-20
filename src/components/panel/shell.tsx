@@ -108,7 +108,7 @@ const LABELS: Record<string, string> = {
   pos: "Punto de venta",
   domicilios: "Domicilios",
   facturacion: "Factura electrónica",
-  caja: "Caja",
+  caja: "Cuentas",
   conceptos: "Conceptos de caja",
   cierre: "Cierre de jornada",
   eventos: "Eventos",
