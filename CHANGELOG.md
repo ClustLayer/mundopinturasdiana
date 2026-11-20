@@ -17,8 +17,14 @@ Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprin
 | **1.2.5** | Sprint 2 · Épica 14 (proveedores e inventario) |
 | **1.3.1** | Sprint 3 · Épica 8 (punto de venta y facturación) |
 | **1.3.2** | Sprint 3 · Épica 9 (domicilios y mensajería) |
+| **1.3.3** | Sprint 3 · Épica 10 (control facturación externa — HU 59) |
 
 ---
+
+## 2026-11-20 — v1.3.3 Épica 10 (HU 59)
+
+- Pantalla Control de Facturación Externa; integración con API `facturacion-externa`.
+- QA: `docs/qa/epic-10.md`.
 
 ## 2026-11-19 — v1.3.2 Épica 9 — POS y cuentas
 
