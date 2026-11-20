@@ -20,6 +20,12 @@ Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprin
 
 ---
 
+## 2026-11-19 — v1.3.2 Épica 9 — POS y cuentas
+
+- POS alineado a demo: descuentos, domicilio, FE, cobro mixto y emitir deshabilitado hasta cubrir total.
+- Sección **Cuentas** en sidebar; transferencias con cuentas sembradas.
+- Enlace «Nuevo cliente» corregido (sin 404).
+
 ## 2026-11-19 — v1.3.2 Épica 9 (domicilios y mensajería)
 
 - `panel-domicilios-page.tsx`: bandeja (alerta >1h), mensajeros, historial, modales HU 53–54.
