@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { createPortal } from "react-dom"
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft, Printer } from "lucide-react"
@@ -46,9 +46,8 @@ export function InvoicePrint({
   backHref: string
   onFormato: (f: "carta" | "termico") => void
 }) {
-  const [host, setHost] = useState<HTMLElement | null>(null)
+  const [host] = useState<HTMLElement | null>(() => (typeof document !== "undefined" ? document.body : null))
   const navigate = useNavigate()
-  useEffect(() => setHost(document.body), [])
   if (!host) return null
 
   const normal = sale.lineas.filter((l) => l.afecta_venta_diaria !== false)

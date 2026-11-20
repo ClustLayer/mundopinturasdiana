@@ -134,6 +134,7 @@ export function PanelVentasPage() {
   }, [page, q, estado, idSede, desde, hasta, numeroUrl])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota al cambiar filtros
     void cargarStats()
     void cargar()
   }, [cargar, cargarStats])
