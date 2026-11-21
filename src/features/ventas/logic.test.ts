@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { cambioCliente, cantidadEnteraValida, correoOpcionalValido, pagosCubrenTotal, saldoPendiente } from "./logic"
+import { cambioCliente, cantidadEnteraValida, correoOpcionalValido, pagosCubrenTotal, saldoPendiente, totalPosLineas } from "./logic"
 
 describe("ventas logic", () => {
   it("calcula saldo y cambio", () => {
@@ -15,5 +15,10 @@ describe("ventas logic", () => {
     expect(correoOpcionalValido("mal")).toBe(false)
     expect(cantidadEnteraValida(1)).toBe(true)
     expect(cantidadEnteraValida(0.5)).toBe(false)
+  })
+
+  it("total POS incluye IVA por línea", () => {
+    const t = totalPosLineas([{ cantidad: 4, precio: 80000, descuento_porcentaje: 0, iva_porcentaje: 19 }])
+    expect(t).toBe(380800)
   })
 })

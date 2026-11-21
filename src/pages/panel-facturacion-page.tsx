@@ -158,8 +158,8 @@ export function PanelFacturacionPage() {
   return (
     <section className="space-y-6">
       <div>
-        <p className="text-sm font-bold uppercase tracking-widest text-brand">Control operativo</p>
-        <h1 className="font-display text-3xl font-extrabold text-plum">Control de Facturación Externa</h1>
+        <p className="font-mono text-xs uppercase tracking-widest text-cyan-dark">Facturación electrónica</p>
+        <h1 className="font-display text-4xl font-extrabold text-plum">Facturación externa</h1>
       </div>
 
       <div role="note" className="flex items-start gap-3 rounded-2xl border-2 border-sun bg-sun/20 p-4 text-sm text-ink">

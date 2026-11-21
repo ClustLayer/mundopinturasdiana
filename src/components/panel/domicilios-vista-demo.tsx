@@ -42,10 +42,10 @@ function badgeEstado(estado: string, etiqueta: string) {
 }
 
 const TABS = [
-  { id: "activos", label: "Pendientes y en ruta" },
-  { id: "entregado", label: "Entregados" },
-  { id: "cancelado", label: "Cancelados" },
-  { id: "todos", label: "Todos" },
+  { id: "activos", label: "Pendientes y en ruta", active: "border-plum bg-plum text-white", idle: "border-plum/25 bg-plum-soft text-plum" },
+  { id: "entregado", label: "Entregados", active: "border-cyan bg-cyan text-white", idle: "border-cyan/30 bg-cyan/10 text-cyan-dark" },
+  { id: "cancelado", label: "Cancelados", active: "border-brand bg-brand text-white", idle: "border-brand/25 bg-brand/10 text-brand-dark" },
+  { id: "todos", label: "Todos", active: "border-ink/40 bg-ink text-white", idle: "border-ink/15 bg-paper text-ink/80" },
 ]
 
 type Opt = { id_mensajero: number; label: string }
@@ -141,7 +141,7 @@ export function DomiciliosVistaDemo({
             key={t.id}
             type="button"
             onClick={() => onVista(t.id)}
-            className={`rounded-xl border-2 px-4 py-2 text-sm font-bold transition ${vista === t.id ? "border-brand bg-brand text-white shadow-[2px_2px_0_0_#371837]" : "border-plum/15 bg-white text-plum hover:border-cyan"}`}
+            className={`rounded-xl border-2 px-4 py-2 text-sm font-bold transition ${vista === t.id ? `${t.active} shadow-[2px_2px_0_0_#371837]/20` : `${t.idle} hover:-translate-y-0.5`}`}
           >
             {t.label}
           </button>

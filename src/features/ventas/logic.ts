@@ -23,3 +23,23 @@ export function correoOpcionalValido(correo: string): boolean {
 export function cantidadEnteraValida(cantidad: number): boolean {
   return Number.isInteger(cantidad) && cantidad >= 1
 }
+
+export type LineaPosTotal = {
+  cantidad: number
+  precio: number
+  descuento_porcentaje: number
+  iva_porcentaje: number
+}
+
+/** Réplica ligera de totales POS (línea neta + IVA). */
+export function totalPosLineas(lineas: LineaPosTotal[]): number {
+  let total = 0
+  for (const l of lineas) {
+    const bruto = l.precio * l.cantidad
+    const desc = (bruto * l.descuento_porcentaje) / 100
+    const neto = bruto - desc
+    const iva = (neto * l.iva_porcentaje) / 100
+    total += neto + iva
+  }
+  return Math.round(total * 100) / 100
+}

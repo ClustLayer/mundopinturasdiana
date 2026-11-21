@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Loader2, Minus, Plus, Search, Trash2, UserPlus } from "lucide-react"
-import { Link, useParams } from "react-router-dom"
-import { btnPrimary, btnGhost, Empty, FieldLabel, FormAlert, SearchCombobox, input, useDebounced, useDo } from "../components/panel/kit"
+import { Link, useNavigate, useParams } from "react-router-dom"
+import { btnPrimary, Empty, FieldLabel, FormAlert, SearchCombobox, input, useDebounced, useDo } from "../components/panel/kit"
 import { toast } from "../features/en-desarrollo"
-import { cambioCliente, pagosCubrenTotal, saldoPendiente } from "../features/ventas/logic"
+import { cambioCliente, pagosCubrenTotal, saldoPendiente, totalPosLineas } from "../features/ventas/logic"
 import { api, mensajeDe } from "../shared/api"
 import { useAccesos } from "../features/accesos/accesos-provider"
 import { puedeAccion } from "../features/accesos/logic"
@@ -35,6 +35,7 @@ type Linea = {
   precio: number
   descuento_porcentaje: number
   inventario_habilitado: boolean
+  iva_porcentaje: number
   stock?: number | null
 }
 
@@ -66,13 +67,16 @@ export function PanelPosPage() {
   const [lineas, setLineas] = useState<Linea[]>([])
   const [pagos, setPagos] = useState<PagoLinea[]>([{ uid: payUid++, id_metodo_pago: "", valor: "", referencia: "", id_cuenta_bancaria: "" }])
   const [idCliente, setIdCliente] = useState("")
-  const [clientesOps, setClientesOps] = useState<{ id: string; label: string; telefono?: string; direccion?: string }[]>([])
+  const [clientesOps, setClientesOps] = useState<
+    { id: string; label: string; telefono?: string; direccion?: string; documento?: string; correo?: string }[]
+  >([])
   const [requiereFe, setRequiereFe] = useState(false)
   const [esDomicilio, setEsDomicilio] = useState(false)
   const [dom, setDom] = useState({ nombre: "", telefono: "", direccion: "", fee: "", id_mensajero: "", pago_mensajero: "" })
   const [comprador, setComprador] = useState({ nombre: "", documento: "", correo: "" })
   const [notas, setNotas] = useState("")
-  const [emitida, setEmitida] = useState<{ consecutivo: string; total: number } | null>(null)
+  const [emitida, setEmitida] = useState<{ id_factura: number; consecutivo: string; total: number } | null>(null)
+  const navigate = useNavigate()
   const [error, setError] = useState("")
   const searchRef = useRef<HTMLInputElement>(null)
   const { run, pending } = useDo()
@@ -128,9 +132,22 @@ export function PanelPosPage() {
   }
 
   const subtotal = useMemo(() => lineas.reduce((a, l) => a + lineTotal(l), 0), [lineas])
+  const totalVenta = useMemo(
+    () => totalPosLineas(lineas.map((l) => ({ cantidad: l.cantidad, precio: l.precio, descuento_porcentaje: l.descuento_porcentaje, iva_porcentaje: l.iva_porcentaje }))),
+    [lineas],
+  )
   const totalPagos = useMemo(() => pagos.reduce((a, p) => a + (Number(p.valor) || 0), 0), [pagos])
-  const saldo = saldoPendiente(subtotal, totalPagos)
-  const cambio = cambioCliente(subtotal, totalPagos)
+  const saldo = saldoPendiente(totalVenta, totalPagos)
+  const cambio = cambioCliente(totalVenta, totalPagos)
+
+  useEffect(() => {
+    if (lineas.length === 0) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza cobro con total
+    setPagos((s) => {
+      if (s.length !== 1 || Number(s[0].valor) > 0) return s
+      return [{ ...s[0], valor: String(Math.round(totalVenta)) }]
+    })
+  }, [totalVenta, lineas.length])
 
   const agregar = (p: ProductoOp) => {
     const existente = lineas.find((l) => l.id_producto === p.id_producto)
@@ -152,6 +169,7 @@ export function PanelPosPage() {
           precio: p.precio_venta,
           descuento_porcentaje: 0,
           inventario_habilitado: p.inventario_habilitado,
+          iva_porcentaje: p.iva_porcentaje,
           stock: p.stock_disponible,
         },
       ])
@@ -160,26 +178,38 @@ export function PanelPosPage() {
   }
 
   useEffect(() => {
-    void api("/api/v1/clientes/?page_size=80").then(async (r) => {
+    void api("/api/v1/clientes/?page_size=40").then(async (r) => {
       if (!r.ok) return
-      const d = (await r.json()) as { items: { id_cliente: number; nombre: string; apellido?: string; numero_telefono?: string; direccion?: string }[] }
+      const d = (await r.json()) as {
+        items: { id_cliente: number; nombre: string; apellido?: string; numero_telefono?: string; direccion?: string; documento?: string; correo?: string }[]
+      }
       setClientesOps(
         d.items.map((c) => ({
           id: String(c.id_cliente),
           label: `${c.nombre} ${c.apellido || ""}`.trim(),
           telefono: c.numero_telefono,
           direccion: c.direccion,
+          documento: c.documento,
+          correo: c.correo,
         }))
       )
     })
   }, [])
+
+  const aplicarCompradorDesdeCliente = (c: (typeof clientesOps)[0]) => {
+    setComprador({
+      nombre: c.label,
+      documento: c.documento || "",
+      correo: c.correo || "",
+    })
+  }
 
   const pickCliente = (v: string) => {
     setIdCliente(v)
     const c = clientesOps.find((x) => x.id === v)
     if (c) {
       toast("Cliente asociado a la venta.")
-      if (requiereFe) setComprador((b) => ({ ...b, nombre: c.label }))
+      if (requiereFe) aplicarCompradorDesdeCliente(c)
       if (esDomicilio) {
         setDom((d0) => ({
           ...d0,
@@ -197,7 +227,7 @@ export function PanelPosPage() {
 
   const puedeConfirmar =
     lineas.length > 0 &&
-    pagosCubrenTotal(subtotal, totalPagos) &&
+    pagosCubrenTotal(totalVenta, totalPagos) &&
     !transferSinCuenta &&
     (!esDomicilio ||
       (dom.nombre.trim() && dom.telefono.trim() && dom.direccion.trim() && dom.id_mensajero)) &&
@@ -248,9 +278,10 @@ export function PanelPosPage() {
         setError((await mensajeDe(r)) || "No fue posible emitir la factura. No se registró ninguna venta.")
         return
       }
-      const d = (await r.json()) as { mensaje: string; factura: { consecutivo: string; total: number } }
+      const d = (await r.json()) as { mensaje: string; factura: { id_factura: number; consecutivo: string; total: number } }
       toast(d.mensaje)
-      setEmitida({ consecutivo: d.factura.consecutivo, total: d.factura.total })
+      setEmitida({ id_factura: d.factura.id_factura, consecutivo: d.factura.consecutivo, total: d.factura.total })
+      navigate(`/panel/${rol}/imprimir/${d.factura.id_factura}?formato=carta`)
       setLineas([])
       setPagos([{ uid: payUid++, id_metodo_pago: cat?.metodos_pago[0] ? String(cat.metodos_pago[0].id_metodo_pago) : "", valor: "", referencia: "", id_cuenta_bancaria: "" }])
       setIdCliente("")
@@ -373,21 +404,34 @@ export function PanelPosPage() {
                 ))}
               </ul>
             )}
-            <p className="mt-4 text-right text-lg font-extrabold text-plum">Total venta: {money(subtotal)}</p>
+            <p className="mt-4 text-right text-lg font-extrabold text-plum">
+              Total venta (IVA incluido): {money(totalVenta)}
+            </p>
+            {totalVenta !== subtotal && <p className="text-right text-xs text-ink/55">Subtotal líneas: {money(subtotal)}</p>}
           </div>
 
           <div className={cardCliente}>
             <h2 className="font-display text-lg font-bold text-plum">Cliente y entrega</h2>
             <SearchCombobox label="Cliente" value={idCliente} onChange={pickCliente} options={clientesOps} placeholder="Cliente de mostrador" />
-            <Link
-              to={rutaClientes}
-              className="mt-3 inline-flex items-center gap-2 rounded-xl border-2 border-plum/15 bg-white px-4 py-2 text-sm font-bold text-plum shadow-[2px_2px_0_0_#371837] transition hover:-translate-y-0.5 hover:border-cyan hover:text-brand"
-            >
-              <UserPlus size={16} aria-hidden /> Nuevo cliente
-            </Link>
-            <button type="button" className={`${btnGhost} mt-2 text-xs`} onClick={() => setIdCliente("")}>
-              Quitar cliente
-            </button>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link
+                to={rutaClientes}
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-plum/15 bg-white px-4 py-2 text-sm font-bold text-plum shadow-[2px_2px_0_0_#371837] transition hover:-translate-y-0.5 hover:border-cyan hover:text-brand"
+              >
+                <UserPlus size={16} aria-hidden /> Nuevo cliente
+              </Link>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-ink/20 bg-ink/5 px-4 py-2 text-sm font-bold text-ink/80 transition hover:border-brand/40 hover:bg-brand/5 hover:text-brand"
+                onClick={() => {
+                  setIdCliente("")
+                  setRequiereFe(false)
+                  setComprador({ nombre: "", documento: "", correo: "" })
+                }}
+              >
+                Quitar cliente
+              </button>
+            </div>
 
             <div className="mt-4 space-y-2 border-t border-dashed border-plum/20 pt-4">
               <label className="flex items-center gap-2 text-sm font-semibold">
@@ -434,7 +478,19 @@ export function PanelPosPage() {
                 </div>
               )}
               <label className="flex items-center gap-2 text-sm font-semibold">
-                <input type="checkbox" checked={requiereFe} disabled={!idCliente} onChange={(e) => setRequiereFe(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={requiereFe}
+                  disabled={!idCliente}
+                  onChange={(e) => {
+                    const on = e.target.checked
+                    setRequiereFe(on)
+                    if (on && idCliente) {
+                      const c = clientesOps.find((x) => x.id === idCliente)
+                      if (c) aplicarCompradorDesdeCliente(c)
+                    }
+                  }}
+                />
                 Factura electrónica
                 {!idCliente && <span className="text-xs font-normal text-ink/55">(elige un cliente)</span>}
               </label>
@@ -483,7 +539,7 @@ export function PanelPosPage() {
                     className="rounded-xl bg-plum-soft px-3 text-xs font-bold text-plum hover:bg-plum/10"
                     onClick={() => {
                       const otros = totalPagos - (Number(p.valor) || 0)
-                      setPagos((s) => s.map((x, j) => (j === i ? { ...x, valor: String(Math.max(0, subtotal - otros)) } : x)))
+                      setPagos((s) => s.map((x, j) => (j === i ? { ...x, valor: String(Math.max(0, totalVenta - otros)) } : x)))
                     }}
                   >
                     Pagar resto
@@ -524,8 +580,10 @@ export function PanelPosPage() {
           {error && <FormAlert message={error} />}
           {emitida && (
             <p className="rounded-xl border-2 border-cyan/30 bg-cyan/5 p-3 text-sm">
-              Última emisión: <strong>{emitida.consecutivo}</strong> — {money(emitida.total)}
-              <button type="button" className="ml-3 font-bold text-brand" onClick={() => window.print()}>Imprimir</button>
+              Última emisión: <strong>{emitida.consecutivo}</strong> — {money(emitida.total)}{" "}
+              <Link to={`/panel/${rol}/imprimir/${emitida.id_factura}?formato=carta`} className="ml-2 font-bold text-brand underline">
+                Ver comprobante
+              </Link>
             </p>
           )}
 
@@ -540,7 +598,7 @@ export function PanelPosPage() {
           {lineas.length > 0 && !puedeConfirmar && (
             <p className="text-xs text-brand-dark" role="status">
               {!pagosCubrenTotal(subtotal, totalPagos)
-                ? `Los pagos deben cubrir el total (${money(subtotal)}).`
+                ? `Los pagos deben cubrir el total (${money(totalVenta)}).`
                 : transferSinCuenta
                   ? "Seleccione la cuenta que recibe la transferencia."
                   : "Complete los datos obligatorios de domicilio o factura electrónica."}

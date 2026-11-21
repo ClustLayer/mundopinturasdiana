@@ -147,7 +147,6 @@ export function PanelDomiciliosPage() {
     const d = (await r.json()) as { items: Entrega[]; total: number; mensaje?: string }
     setBandeja(d.items)
     setBandejaTotal(d.total)
-    if (d.mensaje) toast(d.mensaje)
   }, [bandejaPage, vistaDemo])
 
   const cargarMensajeros = useCallback(async () => {
@@ -169,7 +168,6 @@ export function PanelDomiciliosPage() {
     const d = (await r.json()) as { items: Entrega[]; total: number; mensaje?: string }
     setHistorial(d.items)
     setHistTotal(d.total)
-    if (d.mensaje) toast(d.mensaje)
   }, [histPage, histEstado, histMensajero])
 
   useEffect(() => {
@@ -294,7 +292,7 @@ export function PanelDomiciliosPage() {
           <button
             key={t.id}
             type="button"
-            className={`rounded-xl border-2 px-4 py-2 text-sm font-bold ${vista === t.id ? "border-brand bg-brand text-white" : "border-plum/15 bg-white text-plum"}`}
+            className={`rounded-xl border-2 px-4 py-2 text-sm font-bold ${vista === t.id ? "border-ink bg-ink text-white shadow-md" : "border-plum/15 bg-white text-plum hover:border-cyan"}`}
             aria-current={vista === t.id ? "page" : undefined}
             onClick={() => setVista(t.id)}
           >

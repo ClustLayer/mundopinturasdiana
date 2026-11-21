@@ -43,7 +43,7 @@ type Detalle = Factura & {
   requiere_factura_electronica?: boolean
 }
 
-type Stats = { mes: string; label: string; ventas: number; devoluciones: number } | null
+type Stats = { mes: string; label: string; ventas: number; ventas_dia: number; devoluciones: number } | null
 
 const money = (n: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n)
 
@@ -101,11 +101,10 @@ export function PanelVentasPage() {
 
   useEffect(() => {
     if (!puedeGestionar) return
-    void api("/api/v1/ventas/pos/catalogos/").then(async (r) => {
-      if (r.ok) {
-        const d = (await r.json()) as { sedes: { id_sede: number; nombre: string }[] }
-        setSedes(d.sedes)
-      }
+    void api("/api/v1/branches/").then(async (r) => {
+      if (!r.ok) return
+      const d = (await r.json()) as { id_sede: number; nombre: string }[]
+      setSedes(d.filter((s) => s.id_sede).map((s) => ({ id_sede: s.id_sede, nombre: s.nombre })))
     })
   }, [puedeGestionar])
 
@@ -232,13 +231,18 @@ export function PanelVentasPage() {
       </div>
 
       {stats && puedeGestionar && (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <p className={panelCls}>
+            <span className="text-xs font-bold uppercase tracking-wider text-ink/55">Ventas del día</span>
+            <span className="mt-1 block font-display text-3xl font-extrabold text-plum">{money(stats.ventas_dia ?? 0)}</span>
+            <span className="mt-1 block text-xs text-ink/55">Facturas emitidas hoy (no anuladas).</span>
+          </p>
           <p className={panelCls}>
             <span className="text-xs font-bold uppercase tracking-wider text-ink/55">
               Ventas del mes · <span className="capitalize">{stats.label}</span>
             </span>
             <span className="mt-1 block font-display text-3xl font-extrabold text-plum">{money(stats.ventas)}</span>
-            <span className="mt-1 block text-xs text-ink/55">No incluye anuladas ni productos artísticos.</span>
+            <span className="mt-1 block text-xs text-ink/55">Total facturado del mes (IVA incluido). No incluye anuladas.</span>
           </p>
           <p className={panelCls}>
             <span className="text-xs font-bold uppercase tracking-wider text-ink/55">Devoluciones del mes</span>
