@@ -24,6 +24,7 @@ export function ProductPage() {
   const catalogBack = `/catalogo${location.state?.catalogSearch ?? ""}`
   const { add } = useCart()
   const [qty, setQty] = useState(1)
+  const [colorIdx, setColorIdx] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [item, setItem] = useState<ReturnType<typeof mapProducto> | null>(null)
@@ -37,7 +38,9 @@ export function ProductPage() {
       try {
         const raw = await fetchProductoDetalle(slug, leerSede())
         if (cancel) return
-        setItem(mapProducto(raw))
+        const mapped = mapProducto(raw)
+        setItem(mapped)
+        setColorIdx(0)
         if (raw.seo) {
           setSeo({ titulo: raw.seo.titulo, descripcion: raw.seo.descripcion })
           document.title = raw.seo.titulo
@@ -70,12 +73,16 @@ export function ProductPage() {
 
   const agregar = () => {
     if (!item.inStock) return
+    const tono = item.colors[colorIdx]
+    const nombre = tono ? `${item.name} (${tono.name})` : item.name
     add(
-      { id: item.id, slug: item.slug, name: item.name, sku: item.sku, price: item.salePrice, image: item.image?.url },
+      { id: item.id, slug: item.slug, name: nombre, sku: item.sku, price: item.salePrice, image: item.image?.url },
       qty,
     )
-    toast(`${item.name} agregado al carrito.`)
+    toast(`${nombre} agregado al carrito.`)
   }
+
+  const requiereColor = item.colors.length > 0
 
   return (
     <div className="mx-auto max-w-7xl px-5 pb-16 pt-14 md:px-10">
@@ -99,6 +106,26 @@ export function ProductPage() {
           {item.unit && <p className="text-sm text-ink/55">Unidad: {item.unit}</p>}
           <p className="mt-2 text-xs text-ink/60">Incluye IVA / Impoconsumo según aplique al producto.</p>
           <p className="mt-4 font-semibold text-ink/80">{item.inStock ? "Disponible" : "Agotado"}</p>
+          {requiereColor && (
+            <div className="mt-6">
+              <p className="text-sm font-bold text-plum">Color</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {item.colors.map((c, i) => (
+                  <button
+                    key={`${c.name}-${c.hex}`}
+                    type="button"
+                    aria-pressed={colorIdx === i}
+                    title={c.name}
+                    onClick={() => setColorIdx(i)}
+                    className={`flex items-center gap-2 rounded-full border-2 px-3 py-1.5 text-xs font-bold transition ${colorIdx === i ? "border-brand text-brand" : "border-plum/20 text-ink/70"}`}
+                  >
+                    <span className="size-5 rounded-full border border-plum/15" style={{ backgroundColor: c.hex }} aria-hidden />
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <label className="flex items-center gap-2 font-semibold text-ink">
               Cantidad
@@ -113,7 +140,7 @@ export function ProductPage() {
             </label>
             <button
               type="button"
-              disabled={!item.inStock}
+              disabled={!item.inStock || (requiereColor && colorIdx < 0)}
               onClick={agregar}
               className="inline-flex items-center gap-2 rounded-full bg-brand px-8 py-3.5 font-bold text-white disabled:opacity-50"
             >

@@ -55,7 +55,10 @@ type Detalle = {
   imagen_url: string
   version_fila: number
   estado: boolean
+  ids_colores?: number[]
+  colores?: { id_color: number; nombre: string; hex: string }[]
 }
+type ColorOpt = { id_color: number; nombre: string; hex: string }
 
 const vacio = {
   codigo_producto: "",
@@ -438,6 +441,63 @@ function Select({
   )
 }
 
+function ColoresProductoSection({
+  paleta,
+  idsColores,
+  nuevoColor,
+  pending,
+  onToggle,
+  onNuevoChange,
+  onRegistrar,
+}: {
+  paleta: ColorOpt[]
+  idsColores: number[]
+  nuevoColor: { nombre: string; hex: string }
+  pending: boolean
+  onToggle: (id: number) => void
+  onNuevoChange: (v: { nombre: string; hex: string }) => void
+  onRegistrar: () => void
+}) {
+  return (
+    <div className="md:col-span-2 rounded-2xl border-2 border-plum/10 bg-plum-soft/40 p-4">
+      <p className="text-sm font-semibold text-plum">Colores disponibles (vinilos y similares)</p>
+      <p className="mt-1 text-xs text-ink/55">Seleccione los tonos que el cliente podrá elegir en la tienda.</p>
+      {paleta.length > 0 ? (
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {paleta.map((c) => {
+            const on = idsColores.includes(c.id_color)
+            return (
+              <li key={c.id_color}>
+                <button
+                  type="button"
+                  title={c.nombre}
+                  aria-pressed={on}
+                  onClick={() => onToggle(c.id_color)}
+                  className={`flex items-center gap-2 rounded-full border-2 px-3 py-1.5 text-xs font-bold transition ${on ? "border-brand bg-white text-brand" : "border-plum/15 bg-white text-ink/70"}`}
+                >
+                  <span className="size-4 rounded-full border border-plum/20" style={{ backgroundColor: c.hex }} aria-hidden />
+                  {c.nombre}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      ) : (
+        <p className="mt-2 text-xs text-ink/50">Aún no hay colores en la paleta; puede crear uno abajo.</p>
+      )}
+      <div className="mt-4 flex flex-wrap items-end gap-2 border-t border-plum/10 pt-3">
+        <Field label="Nuevo color" placeholder="Ej. Verde musgo" value={nuevoColor.nombre} onChange={(v) => onNuevoChange({ ...nuevoColor, nombre: v })} />
+        <FieldLabel label="Muestra">
+          <input type="color" className="h-11 w-full min-w-[4rem] rounded-xl border-2 border-plum/15" value={nuevoColor.hex} onChange={(e) => onNuevoChange({ ...nuevoColor, hex: e.target.value })} />
+        </FieldLabel>
+        <button type="button" className={btnPrimary} disabled={pending} onClick={onRegistrar}>
+          Añadir a paleta
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const OBLIG_PRODUCTO: { key: keyof typeof vacio; label: string }[] = [
   { key: "codigo_producto", label: "Código" },
   { key: "nombre", label: "Nombre" },
@@ -460,8 +520,18 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
   const [progreso, setProgreso] = useState(0)
   const [formError, setFormError] = useState("")
   const [invalid, setInvalid] = useState<Set<string>>(new Set())
+  const [paleta, setPaleta] = useState<ColorOpt[]>([])
+  const [idsColores, setIdsColores] = useState<number[]>([])
+  const [nuevoColor, setNuevoColor] = useState({ nombre: "", hex: "#E11D74" })
   const { run, pending } = useDo()
   const isNew = id === null
+
+  useEffect(() => {
+    void api("/api/v1/catalogo/colores/").then(async (r) => {
+      if (!r.ok) return
+      setPaleta(((await r.json()) as { items: ColorOpt[] }).items)
+    })
+  }, [])
 
   useEffect(() => {
     if (id === null) return
@@ -469,6 +539,7 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
       if (!r.ok) return
       const d = (await r.json()) as Detalle
       setVersion(d.version_fila)
+      setIdsColores(d.ids_colores ?? [])
       setF({
         codigo_producto: d.codigo_producto,
         codigo_barras: d.codigo_barras || "",
@@ -488,6 +559,30 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
       if (d.imagen_url) setPreview(`${API_URL}/api/v1/catalogo/media/${d.imagen_url}`)
     })
   }, [id])
+
+  const toggleColor = (idColor: number) => {
+    setIdsColores((prev) => (prev.includes(idColor) ? prev.filter((x) => x !== idColor) : [...prev, idColor]))
+  }
+
+  const registrarColor = () =>
+    run(async () => {
+      const nombre = nuevoColor.nombre.trim()
+      if (!nombre) {
+        setFormError("Indique el nombre del color.")
+        return
+      }
+      const r = await api("/api/v1/catalogo/colores/", { method: "POST", body: JSON.stringify({ nombre, hex: nuevoColor.hex }) })
+      const msg = await mensajeDe(r)
+      if (!r.ok) {
+        setFormError(msg || "No fue posible crear el color.")
+        return
+      }
+      const c = (await r.json()) as { color: ColorOpt }
+      setPaleta((p) => [...p.filter((x) => x.id_color !== c.color.id_color), c.color].sort((a, b) => a.nombre.localeCompare(b.nombre)))
+      setIdsColores((prev) => (prev.includes(c.color.id_color) ? prev : [...prev, c.color.id_color]))
+      setNuevoColor({ nombre: "", hex: "#E11D74" })
+      toast("Color agregado a la paleta.")
+    })
 
   const validar = () => {
     const next = new Set<string>()
@@ -529,6 +624,7 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
         stock_minimo: Number(f.stock_minimo),
         version_fila: version,
         motivo,
+        ids_colores: idsColores,
       }
       if (!isNew) {
         const actual = await api(`/api/v1/catalogo/productos/${id}/`)
@@ -597,6 +693,15 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
           <input type="checkbox" checked={f.inventario_habilitado} onChange={(e) => setF({ ...f, inventario_habilitado: e.target.checked })} /> Inventario habilitado
           <span className="text-brand"> *</span>
         </label>
+        <ColoresProductoSection
+          paleta={paleta}
+          idsColores={idsColores}
+          nuevoColor={nuevoColor}
+          pending={pending}
+          onToggle={toggleColor}
+          onNuevoChange={setNuevoColor}
+          onRegistrar={() => void registrarColor()}
+        />
         <div className="md:col-span-2">
           <p className="mb-1.5 text-sm font-semibold">Imagen</p>
           <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-cyan bg-cyan/10 px-4 py-8 text-center transition hover:bg-cyan/20">
