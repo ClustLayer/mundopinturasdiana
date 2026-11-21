@@ -19,6 +19,7 @@ import { PanelDomiciliosPage } from "./panel-domicilios-page"
 import { PanelFacturacionPage } from "./panel-facturacion-page"
 import { PanelCuentasPage } from "./panel-cuentas-page"
 import { PanelProductosPage } from "./panel-productos-page"
+import { PanelVitrinasPage } from "./panel-vitrinas-page"
 import { puedeModuloCatalogo } from "../features/accesos/catalogo-panel"
 import { PanelCuentaPage } from "./panel-cuenta-page"
 import { PanelPermisosPage } from "./panel-permisos-page"
@@ -240,6 +241,7 @@ export function PanelModulePage() {
   }
   if (modulo === "sedes" && (puedeModulo("sedes") || accesosError)) return <PanelSedesPage />
   if (modulo === "productos" && (puedeModulo("productos") || accesosError)) return <PanelProductosPage />
+  if (modulo === "vitrinas" && (puedeModuloCatalogo("vitrinas", puedeModulo) || accesosError)) return <PanelVitrinasPage />
   if (modulo === "inventario" && (puedeModulo("inventario") || accesosError)) return <PanelInventarioPage />
   if (modulo === "clientes" && (puedeModulo("clientes") || accesosError)) return <PanelClientesPage />
   if (modulo === "proveedores" && (puedeModulo("proveedores") || accesosError)) return <PanelProveedoresPage />

@@ -413,23 +413,25 @@ export function PanelPosPage() {
           <div className={cardCliente}>
             <h2 className="font-display text-lg font-bold text-plum">Cliente y entrega</h2>
             <SearchCombobox label="Cliente" value={idCliente} onChange={pickCliente} options={clientesOps} placeholder="Cliente de mostrador" />
-            <Link
-              to={rutaClientes}
-              className="mt-3 inline-flex items-center gap-2 rounded-xl border-2 border-plum/15 bg-white px-4 py-2 text-sm font-bold text-plum shadow-[2px_2px_0_0_#371837] transition hover:-translate-y-0.5 hover:border-cyan hover:text-brand"
-            >
-              <UserPlus size={16} aria-hidden /> Nuevo cliente
-            </Link>
-            <button
-              type="button"
-              className="mt-2 inline-flex items-center gap-2 rounded-xl border-2 border-ink/20 bg-ink/5 px-4 py-2 text-sm font-bold text-ink/80 transition hover:border-brand/40 hover:bg-brand/5 hover:text-brand"
-              onClick={() => {
-                setIdCliente("")
-                setRequiereFe(false)
-                setComprador({ nombre: "", documento: "", correo: "" })
-              }}
-            >
-              Quitar cliente
-            </button>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link
+                to={rutaClientes}
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-plum/15 bg-white px-4 py-2 text-sm font-bold text-plum shadow-[2px_2px_0_0_#371837] transition hover:-translate-y-0.5 hover:border-cyan hover:text-brand"
+              >
+                <UserPlus size={16} aria-hidden /> Nuevo cliente
+              </Link>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border-2 border-ink/20 bg-ink/5 px-4 py-2 text-sm font-bold text-ink/80 transition hover:border-brand/40 hover:bg-brand/5 hover:text-brand"
+                onClick={() => {
+                  setIdCliente("")
+                  setRequiereFe(false)
+                  setComprador({ nombre: "", documento: "", correo: "" })
+                }}
+              >
+                Quitar cliente
+              </button>
+            </div>
 
             <div className="mt-4 space-y-2 border-t border-dashed border-plum/20 pt-4">
               <label className="flex items-center gap-2 text-sm font-semibold">

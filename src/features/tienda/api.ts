@@ -19,6 +19,7 @@ export type TiendaProductoApi = {
   agotado: boolean
   imagen_url: string
   imagen_alt: string
+  colores?: { name: string; hex: string }[]
   descripcion?: string
   tipo_producto?: string
   nota_impuestos?: string
@@ -45,7 +46,7 @@ export function mapProducto(p: TiendaProductoApi): PublicProduct {
     category: p.categoria || null,
     categorySlug: null,
     artistic: false,
-    colors: [],
+    colors: (p.colores ?? []).map((c) => ({ name: c.name, hex: c.hex })),
     sizes: [],
     productType: p.tipo_producto ?? null,
     unit: p.unidad_medida || null,

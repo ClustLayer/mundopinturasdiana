@@ -13,27 +13,24 @@ function dismissToast(el: HTMLDivElement) {
   window.clearTimeout(toastTimer)
 }
 
-export function toast(message: string) {
+export function toast(message: string, tipo: "ok" | "error" = "ok") {
   window.clearTimeout(toastTimer)
   if (toastEl?.isConnected) toastEl.remove()
   const el = document.createElement("div")
-  el.setAttribute("role", "status")
-  const panel = document.querySelector("[data-panel-shell]")
-  const inPanel = Boolean(panel)
-  el.className = inPanel
-    ? "pointer-events-auto fixed top-4 right-4 z-[200] flex max-w-sm items-start gap-2 rounded-xl border border-plum/15 bg-white py-2 pl-3 pr-2 text-sm font-semibold text-plum shadow-lg"
-    : "pointer-events-auto fixed top-4 right-4 z-[200] flex max-w-sm items-start gap-2 rounded-xl border border-cyan/40 bg-white py-2 pl-3 pr-2 text-sm font-semibold text-plum shadow-lg"
+  el.setAttribute("role", tipo === "error" ? "alert" : "status")
+  const borde = tipo === "error" ? "border-brand" : "border-cyan"
+  el.className = `pointer-events-auto fixed top-4 right-4 z-[200] flex w-auto max-w-md items-start gap-2 rounded-2xl border-2 ${borde} bg-white py-2.5 pl-4 pr-2 text-base font-semibold text-plum shadow-lg`
   const msg = document.createElement("span")
   msg.className = "min-w-0 flex-1 leading-snug"
   msg.textContent = message
   const close = document.createElement("button")
   close.type = "button"
-  close.className = "grid size-7 shrink-0 place-items-center rounded-lg text-ink/50 hover:bg-plum/10 hover:text-plum"
+  close.className = "grid size-9 shrink-0 place-items-center rounded-xl text-xl font-bold leading-none text-ink/55 hover:bg-plum/10 hover:text-brand"
   close.setAttribute("aria-label", "Cerrar notificación")
   close.textContent = "×"
   close.addEventListener("click", () => dismissToast(el))
   el.append(msg, close)
   document.body.appendChild(el)
   toastEl = el
-  toastTimer = window.setTimeout(() => dismissToast(el), 2200)
+  toastTimer = window.setTimeout(() => dismissToast(el), 3200)
 }

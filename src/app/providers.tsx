@@ -7,6 +7,7 @@ import {
   leerTokenPersistido,
 } from "../features/auth/session-storage"
 import type { Sesion } from "../features/auth/session-types"
+import { toast } from "../features/en-desarrollo"
 import { api, guardarToken, renovarUnaVez } from "../shared/api"
 
 export type { Sesion }
@@ -50,9 +51,7 @@ export function Providers({ children }: { children: ReactNode }) {
   const [avisos, setAvisos] = useState<Aviso[]>([])
 
   const avisar = useCallback((texto: string, tipo: "ok" | "error" = "ok") => {
-    const id = Date.now() + Math.floor(Math.random() * 1000)
-    setAvisos((lista) => [...lista, { id, texto, tipo }])
-    window.setTimeout(() => setAvisos((lista) => lista.filter((aviso) => aviso.id !== id)), 6000)
+    toast(texto, tipo)
   }, [])
 
   const salir = useCallback(() => {
@@ -97,6 +96,14 @@ export function Providers({ children }: { children: ReactNode }) {
     }
   }, [salir])
 
+  useEffect(() => {
+    if (!sesion || !sesionLista) return
+    const id = window.setInterval(() => {
+      void renovarUnaVez()
+    }, 12 * 60_000)
+    return () => window.clearInterval(id)
+  }, [sesion, sesionLista])
+
   const value = useMemo<AppState>(
     () => ({
       sesion,
@@ -129,20 +136,6 @@ export function Providers({ children }: { children: ReactNode }) {
       <AccesosProvider activo={Boolean(sesion && sesionLista && !sesion.requiere2fa && !sesion.debeCambiarPassword)}>
         {children}
       </AccesosProvider>
-      <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[min(100%-2rem,24rem)] flex-col gap-2" aria-live="polite">
-        {avisos.map((aviso) => (
-          <div
-            key={aviso.id}
-            role={aviso.tipo === "error" ? "alert" : "status"}
-            className={`pointer-events-auto rounded-xl border-2 px-4 py-3 text-sm font-semibold shadow-lg ${aviso.tipo === "error" ? "border-brand bg-white text-brand-dark" : "border-cyan bg-white text-plum"}`}
-          >
-            {aviso.texto}
-            <button type="button" className="ml-3 underline" onClick={() => value.cerrarAviso(aviso.id)}>
-              Cerrar
-            </button>
-          </div>
-        ))}
-      </div>
     </Ctx.Provider>
   )
 }

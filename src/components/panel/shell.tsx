@@ -13,6 +13,7 @@ import {
   Handshake,
   History,
   KeyRound,
+  LayoutGrid,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -61,6 +62,7 @@ const ICONS: Record<string, LucideIcon> = {
   categorias: Tags,
   marcas: Award,
   tipos_producto: Shapes,
+  vitrinas: LayoutGrid,
   promociones: Gift,
   auditoria: History,
   analitica: BarChart3,
@@ -80,6 +82,7 @@ const ORDER = [
   "categorias",
   "marcas",
   "tipos_producto",
+  "vitrinas",
   "inventario",
   "clientes",
   "proveedores",
@@ -100,6 +103,7 @@ const LABELS: Record<string, string> = {
   categorias: "Categorías de producto",
   marcas: "Marcas",
   tipos_producto: "Tipos de producto",
+  vitrinas: "Vitrinas del inicio",
   productos: "Productos",
   inventario: "Inventario",
   clientes: "Clientes",
@@ -246,7 +250,8 @@ export function PanelShell({ children }: { children: ReactNode }) {
   const base = rutaDeRol(sesion.rol)
   const visibleModulo = (m: string) => {
     if (m === "permisos" && sesion?.rol !== "Administrador") return false
-    if (m === "categorias" || m === "marcas" || m === "tipos_producto") return puedeModuloCatalogo(m, puedeModulo)
+    if (m === "categorias" || m === "marcas" || m === "tipos_producto" || m === "vitrinas")
+      return puedeModuloCatalogo(m, puedeModulo)
     return puedeModulo(m)
   }
   const items = [

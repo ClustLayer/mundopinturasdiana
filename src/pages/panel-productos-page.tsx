@@ -159,6 +159,23 @@ export function PanelProductosPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           {puedeCrear && (
+            <button
+              type="button"
+              className={`${btnGhost} border-sun/40 text-plum hover:bg-sun/20`}
+              onClick={() => {
+                void api("/api/v1/catalogo/productos/plantilla/").then(async (r) => {
+                  const blob = await r.blob()
+                  const a = document.createElement("a")
+                  a.href = URL.createObjectURL(blob)
+                  a.download = "plantilla-productos.xlsx"
+                  a.click()
+                })
+              }}
+            >
+              <Download size={16} aria-hidden /> Descargar plantilla
+            </button>
+          )}
+          {puedeCrear && (
             <button type="button" className={btnGhost} onClick={() => setImportOpen(true)}>
               <Upload size={16} aria-hidden /> Importar
             </button>
@@ -597,7 +614,25 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
               }}
             />
           </label>
-          {preview && <img src={preview} alt="Vista previa" className="mt-3 h-24 w-24 rounded-xl object-cover" />}
+          {preview && (
+            <div className="relative mt-3 inline-block">
+              <img src={preview} alt="Vista previa" className="h-24 w-24 rounded-xl object-cover" />
+              {!isNew && (
+                <button
+                  type="button"
+                  aria-label="Quitar imagen"
+                  className="absolute -right-2 -top-2 grid size-7 place-items-center rounded-full border-2 border-white bg-brand text-sm font-bold text-white shadow"
+                  onClick={() => {
+                    setArchivo(null)
+                    setPreview("")
+                    if (id) void api(`/api/v1/catalogo/productos/${id}/imagen/`, { method: "DELETE" }).then(() => toast("Imagen eliminada. Guarde para confirmar."))
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          )}
           {progreso > 0 && <progress className="mt-2 w-full" value={progreso} max={100} aria-label="Progreso de carga" />}
         </div>
       </div>
@@ -722,16 +757,12 @@ function ImportarModal({ onClose }: { onClose: () => void }) {
   const { run, pending } = useDo()
   return (
     <Modal open title="Importar productos" onClose={onClose}>
-      <input type="file" accept=".csv,.xlsx,.xls" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-      <button type="button" className={`${btnGhost} mt-3`} onClick={() => {
-        void api("/api/v1/catalogo/productos/plantilla/").then(async (r) => {
-          const blob = await r.blob()
-          const a = document.createElement("a")
-          a.href = URL.createObjectURL(blob)
-          a.download = "plantilla-productos.xlsx"
-          a.click()
-        })
-      }}>Descargar plantilla</button>
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-cyan bg-cyan/10 px-4 py-8 text-center transition hover:bg-cyan/20">
+        <Upload size={28} className="text-cyan-dark" aria-hidden />
+        <span className="text-sm font-bold text-plum">{file ? file.name : "Elegir archivo CSV o Excel"}</span>
+        <span className="text-xs text-ink/60">Haga clic para seleccionar el archivo de importación</span>
+        <input type="file" accept=".csv,.xlsx,.xls" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+      </label>
       {progreso > 0 && <progress className="mt-3 w-full" value={progreso} max={100} />}
       {reporte && (
         <div className="mt-3 text-sm">

@@ -4,6 +4,7 @@ import { useCart } from "../components/cart/cart-provider"
 import { fetchTiendaSedes, prepararPedido, type TiendaSede } from "../features/tienda/api"
 import { formatCOPClient } from "../lib/format"
 import { toast } from "../features/en-desarrollo"
+import { PhoneInput } from "../components/panel/phone-input"
 import { validateE164 } from "../lib/phone-e164"
 
 const SEDE_KEY = "mpd-sede-id"
@@ -84,10 +85,7 @@ export function PedidoPage() {
           <span className="font-semibold text-ink">Nombre completo</span>
           <input required maxLength={255} value={nombre} onChange={(e) => setNombre(e.target.value)} className="mt-1 w-full rounded-xl border-2 border-plum/15 px-4 py-3" />
         </label>
-        <label className="block">
-          <span className="font-semibold text-ink">Teléfono móvil (E.164)</span>
-          <input required placeholder="+57..." maxLength={20} value={telefono} onChange={(e) => setTelefono(e.target.value)} className="mt-1 w-full rounded-xl border-2 border-plum/15 px-4 py-3" />
-        </label>
+        <PhoneInput label="Teléfono móvil" required value={telefono || "+57"} onChange={setTelefono} invalid={Boolean(error && !validateE164(telefono))} />
         <label className="block">
           <span className="font-semibold text-ink">Dirección de entrega</span>
           <input value={direccion} onChange={(e) => setDireccion(e.target.value)} className="mt-1 w-full rounded-xl border-2 border-plum/15 px-4 py-3" />
