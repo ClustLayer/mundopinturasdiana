@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { Landmark, Pencil, Plus } from "lucide-react"
+import { Landmark, Pencil, Plus, Power } from "lucide-react"
 import {
   Empty,
   FieldLabel,
@@ -57,8 +57,21 @@ export function PanelCuentasPage() {
     const d = (await r.json()) as { items: Cuenta[]; total: number; mensaje?: string }
     setItems(d.items)
     setTotal(d.total)
-    if (d.mensaje) toast(d.mensaje)
   }, [page, debQ])
+
+  const toggleActiva = (c: Cuenta) =>
+    run(async () => {
+      const r = await api(`/api/v1/caja/cuentas/${c.id_cuenta_bancaria}/`, {
+        method: "PATCH",
+        body: JSON.stringify({ nombre: c.nombre, tipo_cuenta: c.tipo_cuenta, numero: c.numero, estado: !c.estado, version_fila: c.version_fila }),
+      })
+      if (!r.ok) {
+        toast((await mensajeDe(r)) || "No fue posible actualizar la cuenta.")
+        return
+      }
+      toast(c.estado ? "Cuenta desactivada para el POS." : "Cuenta activada en el POS.")
+      void cargar()
+    })
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
@@ -143,11 +156,23 @@ export function PanelCuentasPage() {
                 <td className="p-3 font-mono">{c.numero}</td>
                 <td className="p-3">{c.estado ? "Activa" : "Inactiva"}</td>
                 <td className="p-3">
-                  {puedeEditar && (
-                    <button type="button" className="rounded-lg p-2 hover:bg-plum/5" title="Editar" onClick={() => abrirEditar(c)}>
-                      <Pencil size={16} />
-                    </button>
-                  )}
+                  <div className="flex justify-end gap-1">
+                    {puedeEditar && (
+                      <button
+                        type="button"
+                        className={`rounded-lg p-2 hover:bg-plum/5 ${c.estado ? "text-cyan-dark" : "text-ink/40"}`}
+                        title={c.estado ? "Desactivar en POS" : "Activar en POS"}
+                        onClick={() => void toggleActiva(c)}
+                      >
+                        <Power size={16} />
+                      </button>
+                    )}
+                    {puedeEditar && (
+                      <button type="button" className="rounded-lg p-2 hover:bg-plum/5" title="Editar" onClick={() => abrirEditar(c)}>
+                        <Pencil size={16} />
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

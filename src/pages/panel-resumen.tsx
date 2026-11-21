@@ -6,14 +6,15 @@ import { useApp } from "../app/providers"
 import { puedeAccion } from "../features/accesos/logic"
 import { useAccesos } from "../features/accesos/accesos-provider"
 import { formatCOPClient } from "../lib/format"
-import { getTodaySalesSummary } from "../lib/public-data"
 import { Panel } from "../components/panel/kit"
 import { Blob } from "../components/ui/splash"
-import { avisoEnDesarrollo } from "../features/en-desarrollo"
 import { saludoColombia } from "../lib/saludo"
 import { api } from "../shared/api"
 
 type PanelResumenPayload = {
+  ventas_hoy?: { cantidad: number; total: number }
+  domicilios_pendientes?: number
+  facturas_electronicas_pendientes?: number
   inventario?: { bajo_stock_minimo: number; alertas: string[] }
   actividad_reciente?: {
     id_auditoria: number
@@ -42,20 +43,19 @@ export function PanelResumenPage() {
   const base = rutaDeRol(sesion.rol)
   const role = sesion.rol.toLowerCase()
   const isEmp = sesion.rol === "Empleado"
-  const { count, total } = getTodaySalesSummary()
   const greet = saludoColombia()
+
+  const ventasHoy = data?.ventas_hoy
+  const count = ventasHoy?.cantidad ?? 0
+  const total = ventasHoy?.total ?? 0
 
   const accionesInv = accionesModulo("inventario")
   const puedeInventario =
-    Boolean(data?.inventario) ||
-    (accionesInv.length === 0 && puedeModulo("inventario")) ||
-    puedeAccion(accionesInv, "Consultar")
+    Boolean(data?.inventario) || (accionesInv.length === 0 && puedeModulo("inventario")) || puedeAccion(accionesInv, "Consultar")
 
   const accionesAud = accionesModulo("auditoria")
   const puedeActividad =
-    Boolean(data?.actividad_reciente) ||
-    (accionesAud.length === 0 && puedeModulo("auditoria")) ||
-    puedeAccion(accionesAud, "Consultar")
+    Boolean(data?.actividad_reciente) || (accionesAud.length === 0 && puedeModulo("auditoria")) || puedeAccion(accionesAud, "Consultar")
 
   const low = data?.inventario?.bajo_stock_minimo
   const muestraInventario = Boolean(data?.inventario) || puedeInventario
@@ -68,7 +68,7 @@ export function PanelResumenPage() {
       s: isEmp ? "lo que llevas registrado hoy" : `${count} venta${count === 1 ? "" : "s"}`,
       Icon: Banknote,
       tone: "bg-brand text-white",
-      href: undefined as string | undefined,
+      href: `${base}/ventas`,
     },
     ...(!isEmp
       ? [
@@ -84,8 +84,22 @@ export function PanelResumenPage() {
                 },
               ]
             : []),
-          { l: "Domicilios pendientes", v: "—", s: "por entregar", Icon: Truck, tone: "bg-cyan text-white", href: `${base}/domicilios` },
-          { l: "Facturas electrónicas pendientes", v: "—", s: "por gestionar o corregir", Icon: FileCheck2, tone: "bg-plum text-white", href: `${base}/facturacion` },
+          {
+            l: "Domicilios pendientes",
+            v: data?.domicilios_pendientes !== undefined ? String(data.domicilios_pendientes) : "—",
+            s: "por entregar",
+            Icon: Truck,
+            tone: "bg-cyan text-white",
+            href: `${base}/domicilios`,
+          },
+          {
+            l: "Facturas electrónicas pendientes",
+            v: data?.facturas_electronicas_pendientes !== undefined ? String(data.facturas_electronicas_pendientes) : "—",
+            s: "por gestionar o corregir",
+            Icon: FileCheck2,
+            tone: "bg-plum text-white",
+            href: `${base}/facturacion`,
+          },
         ]
       : []),
   ]
@@ -101,32 +115,24 @@ export function PanelResumenPage() {
         <h1 className="relative mt-1 font-display text-4xl font-extrabold sm:text-5xl">
           {greet}, {sesion.nombre.split(" ")[0]}
         </h1>
-        <button type="button" onClick={avisoEnDesarrollo} className="relative mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-plum shadow-[4px_4px_0_0_var(--color-brand)] transition hover:-translate-y-0.5">
+        <Link
+          to={`${base}/pos`}
+          className="relative mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-plum shadow-[4px_4px_0_0_var(--color-brand)] transition hover:-translate-y-0.5"
+        >
           <ShoppingBag size={18} /> Nueva venta <ArrowUpRight size={16} />
-        </button>
+        </Link>
       </header>
       <div className={`mt-6 grid gap-4 ${kpi.length > 3 ? "sm:grid-cols-2 lg:grid-cols-4" : kpi.length === 1 ? "max-w-sm" : "sm:grid-cols-3"}`}>
-        {kpi.map(({ l, v, s, Icon, tone, href }) => {
-          const body = (
-            <>
-              <span className={`inline-flex size-10 items-center justify-center rounded-xl ${tone}`}>
-                <Icon size={20} />
-              </span>
-              <p className="mt-4 text-xs font-bold uppercase tracking-wider text-ink/55">{l}</p>
-              <p className="font-display text-3xl font-extrabold text-plum">{v}</p>
-              <p className="text-xs text-ink/55">{s}</p>
-            </>
-          )
-          return href ? (
-            <Link key={l} to={href} className="rounded-2xl border-2 border-plum/10 bg-white p-5 transition hover:-translate-y-0.5 hover:border-plum/30">
-              {body}
-            </Link>
-          ) : (
-            <div key={l} className="rounded-2xl border-2 border-plum/10 bg-white p-5">
-              {body}
-            </div>
-          )
-        })}
+        {kpi.map(({ l, v, s, Icon, tone, href }) => (
+          <Link key={l} to={href} className="rounded-2xl border-2 border-plum/10 bg-white p-5 transition hover:-translate-y-0.5 hover:border-plum/30">
+            <span className={`inline-flex size-10 items-center justify-center rounded-xl ${tone}`}>
+              <Icon size={20} />
+            </span>
+            <p className="mt-4 text-xs font-bold uppercase tracking-wider text-ink/55">{l}</p>
+            <p className="font-display text-3xl font-extrabold text-plum">{v}</p>
+            <p className="text-xs text-ink/55">{s}</p>
+          </Link>
+        ))}
       </div>
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         {!isEmp && muestraInventario && (

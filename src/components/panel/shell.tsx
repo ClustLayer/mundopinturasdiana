@@ -300,7 +300,7 @@ export function PanelShell({ children }: { children: ReactNode }) {
   const side = render(false)
 
   return (
-    <div className={`min-h-dvh bg-paper transition-[grid-template-columns] duration-200 lg:grid ${collapsed ? "lg:grid-cols-[4.5rem_1fr]" : "lg:grid-cols-[17rem_1fr]"}`}>
+    <div data-panel-shell className={`min-h-dvh bg-paper transition-[grid-template-columns] duration-200 lg:grid ${collapsed ? "lg:grid-cols-[4.5rem_1fr]" : "lg:grid-cols-[17rem_1fr]"}`}>
       <a href="#panel-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3">
         Saltar al contenido
       </a>
