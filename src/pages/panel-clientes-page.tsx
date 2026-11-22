@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react"
-import { Eye, Loader2, MessageCircle, Pencil, Plus, Search } from "lucide-react"
+import { Download, Eye, Loader2, MessageCircle, Pencil, Plus, Search, Upload } from "lucide-react"
 import {
   Empty,
   FieldLabel,
@@ -74,6 +74,9 @@ export function PanelClientesPage() {
   const acciones = accionesModulo("clientes")
   const puedeCrear = puedeAccion(acciones, "Crear")
   const puedeEditar = puedeAccion(acciones, "Editar")
+  const puedeExportar = puedeAccion(acciones, "Exportar") || puedeAccion(acciones, "Consultar")
+  const [importOpen, setImportOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
   const [vista, setVista] = useState<Vista>("clientes")
   const [q, setQ] = useState("")
   const debouncedQ = useDebounced(q, 300)
@@ -131,6 +134,38 @@ export function PanelClientesPage() {
       <p className="mt-2 max-w-2xl text-sm text-ink/65">
         Datos personales tratados bajo Habeas Data (Ley 1581). Registra la autorización del titular.
       </p>
+      {vista === "clientes" && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {puedeCrear && (
+            <button
+              type="button"
+              className={btnGhost}
+              onClick={() => {
+                void api("/api/v1/clientes/plantilla/").then(async (r) => {
+                  if (!r.ok) return toast((await mensajeDe(r)) || "No fue posible descargar la plantilla.")
+                  const blob = await r.blob()
+                  const a = document.createElement("a")
+                  a.href = URL.createObjectURL(blob)
+                  a.download = "plantilla-clientes.xlsx"
+                  a.click()
+                })
+              }}
+            >
+              <Download size={16} aria-hidden /> Descargar plantilla
+            </button>
+          )}
+          {puedeCrear && (
+            <button type="button" className={btnGhost} onClick={() => setImportOpen(true)}>
+              <Upload size={16} aria-hidden /> Importar
+            </button>
+          )}
+          {puedeExportar && (
+            <button type="button" className={btnGhost} onClick={() => setExportOpen(true)}>
+              <Download size={16} aria-hidden /> Exportar
+            </button>
+          )}
+        </div>
+      )}
 
       <Row className="mt-5 flex flex-wrap gap-2 border-b border-plum/10 pb-3">
         <Tab active={vista === "clientes"} onClick={() => setVista("clientes")}>
@@ -287,6 +322,15 @@ export function PanelClientesPage() {
           void cargar()
         }}
       />
+      {importOpen && <ClientesImportarModal onClose={() => { setImportOpen(false); void cargar() }} />}
+      {exportOpen && (
+        <ClientesExportarModal
+          onClose={() => setExportOpen(false)}
+          q={debouncedQ}
+          estado={estadoFiltro}
+          tipo={tipoFiltro}
+        />
+      )}
     </section>
   )
 }
@@ -826,5 +870,90 @@ function ClienteDetalle({ id, mostrarMetricas, onVolver }: { id: number; mostrar
         </>
       )}
     </section>
+  )
+}
+
+function ClientesImportarModal({ onClose }: { onClose: () => void }) {
+  const [file, setFile] = useState<File | null>(null)
+  const [reporte, setReporte] = useState<{ mensaje: string } | null>(null)
+  const { run, pending } = useDo()
+  return (
+    <Modal open title="Importar clientes" onClose={onClose}>
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-cyan bg-cyan/10 px-4 py-8 text-center">
+        <Upload size={28} className="text-cyan-dark" aria-hidden />
+        <span className="text-sm font-bold text-plum">{file ? file.name : "Elegir archivo CSV o Excel"}</span>
+        <input type="file" accept=".csv,.xlsx,.xls" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+      </label>
+      {reporte && <p className="mt-3 text-sm">{reporte.mensaje}</p>}
+      <div className="mt-6 flex justify-end gap-3">
+        <button type="button" className={btnGhost} onClick={onClose}>Cancelar</button>
+        <button
+          type="button"
+          className={btnPrimary}
+          disabled={!file || pending}
+          onClick={() =>
+            void run(async () => {
+              if (!file) return
+              const data = new FormData()
+              data.append("archivo", file)
+              const r = await api("/api/v1/clientes/importar/", { method: "POST", body: data, headers: {} })
+              if (!r.ok) {
+                toast((await mensajeDe(r)) || "No fue posible importar.")
+                return
+              }
+              const body = (await r.json()) as { mensaje: string }
+              setReporte(body)
+              toast(body.mensaje)
+            })
+          }
+        >
+          {pending ? <Loader2 size={16} className="animate-spin" aria-hidden /> : null}
+          Validar y cargar
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+function ClientesExportarModal({ onClose, q, estado, tipo }: { onClose: () => void; q: string; estado: string; tipo: string }) {
+  const [formato, setFormato] = useState<"csv" | "xlsx">("xlsx")
+  const { run, pending } = useDo()
+  return (
+    <Modal open title="Exportar clientes" onClose={onClose}>
+      <FieldLabel label="Formato" required>
+        <select className={input} value={formato} onChange={(e) => setFormato(e.target.value as "csv" | "xlsx")}>
+          <option value="xlsx">Excel (.xlsx)</option>
+          <option value="csv">CSV (.csv)</option>
+        </select>
+      </FieldLabel>
+      <div className="mt-6 flex justify-end gap-3">
+        <button type="button" className={btnGhost} onClick={onClose} disabled={pending}>Cancelar</button>
+        <button
+          type="button"
+          className={btnPrimary}
+          disabled={pending}
+          onClick={() =>
+            void run(async () => {
+              const qs = new URLSearchParams({ formato, q, estado })
+              if (tipo) qs.set("id_tipo_cliente", tipo)
+              const r = await api(`/api/v1/clientes/exportar/?${qs}`)
+              if (!r.ok) {
+                toast((await mensajeDe(r)) || "No fue posible exportar.")
+                return
+              }
+              const blob = await r.blob()
+              const a = document.createElement("a")
+              a.href = URL.createObjectURL(blob)
+              a.download = `clientes.${formato}`
+              a.click()
+              toast("Exportación generada.")
+              onClose()
+            })
+          }
+        >
+          Exportar
+        </button>
+      </div>
+    </Modal>
   )
 }

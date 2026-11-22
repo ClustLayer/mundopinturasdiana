@@ -24,6 +24,7 @@ import {
 import { puedeAccion } from "../features/accesos/logic"
 import { useAccesos } from "../features/accesos/accesos-provider"
 import { OriginBadge, TypeBadge } from "../features/inventory/badges"
+import { bogotaDay } from "../features/caja/format"
 import { dt, money } from "../features/inventory/format"
 import { parseBulkInventoryText } from "../features/inventory/inventory-bulk"
 import { toast } from "../features/en-desarrollo"
@@ -214,8 +215,10 @@ function Stock() {
 function Kardex() {
   const [tipo, setTipo] = useState("")
   const [sede, setSede] = useState("")
-  const [desde, setDesde] = useState("")
-  const [hasta, setHasta] = useState("")
+  const hoy = bogotaDay()
+  const [soloHoy, setSoloHoy] = useState(true)
+  const [desde, setDesde] = useState(hoy)
+  const [hasta, setHasta] = useState(hoy)
   const [sedes, setSedes] = useState<Sede[]>([])
   const [rows, setRows] = useState<Mov[]>([])
   const [msg, setMsg] = useState("")
@@ -225,15 +228,17 @@ function Kardex() {
     const qs = new URLSearchParams()
     if (tipo) qs.set("tipo", tipo)
     if (sede) qs.set("id_sede", sede)
-    if (desde) qs.set("desde", desde)
-    if (hasta) qs.set("hasta", hasta)
+    const d0 = soloHoy ? hoy : desde
+    const d1 = soloHoy ? hoy : hasta
+    if (d0) qs.set("desde", d0)
+    if (d1) qs.set("hasta", d1)
     const r = await api(`/api/v1/inventario/kardex/?${qs}`)
     if (r.ok) {
       const body = await r.json()
       setRows(body.items)
       setMsg(body.mensaje)
     }
-  }, [tipo, desde, hasta, sede])
+  }, [tipo, desde, hasta, sede, soloHoy, hoy])
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
     void cargar()
@@ -262,17 +267,34 @@ function Kardex() {
             ))}
           </select>
         </label>
-        <label className="text-xs font-semibold text-ink/70">
-          Desde (opcional)
-          <input type="date" className={`${input} w-44`} value={desde} onChange={(e) => setDesde(e.target.value)} />
-        </label>
-        <label className="text-xs font-semibold text-ink/70">
-          Hasta (opcional)
-          <input type="date" className={`${input} w-44`} value={hasta} onChange={(e) => setHasta(e.target.value)} />
-        </label>
-        <button type="button" className={btnGhost} onClick={() => { setDesde(""); setHasta("") }}>
-          Solo hoy
+        <button
+          type="button"
+          className={`${btnGhost} ${soloHoy ? "!border-cyan !text-cyan-dark" : ""}`}
+          onClick={() => {
+            setSoloHoy((v) => {
+              const next = !v
+              if (next) {
+                setDesde(hoy)
+                setHasta(hoy)
+              }
+              return next
+            })
+          }}
+        >
+          {soloHoy ? "Solo hoy" : "Rango de fechas"}
         </button>
+        {!soloHoy && (
+          <>
+            <label className="text-xs font-semibold text-ink/70">
+              Desde
+              <input type="date" className={`${input} w-44`} value={desde} onChange={(e) => setDesde(e.target.value)} />
+            </label>
+            <label className="text-xs font-semibold text-ink/70">
+              Hasta
+              <input type="date" className={`${input} w-44`} value={hasta} onChange={(e) => setHasta(e.target.value)} />
+            </label>
+          </>
+        )}
         <button type="submit" className={btnGhost}><Search size={15} /> Filtrar</button>
       </form>
       <p className="mb-2 text-xs text-ink/60">
