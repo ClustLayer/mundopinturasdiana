@@ -19,8 +19,14 @@ Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprin
 | **1.3.2** | Sprint 3 · Épica 9 (domicilios y mensajería) |
 | **1.3.3** | Sprint 3 · Épica 10 (control facturación externa — HU 59) |
 | **1.3.4** | Sprint 3 · Épica 16 (tienda pública y pedido WhatsApp — HU 88–93) |
+| **1.4.1** | Sprint 4 · Épica 11 (caja, cierre, conceptos e historial — HU 60–79) |
 
 ---
+
+## 2026-11-21 — v1.4.1 Épica 11 (caja y reporte diario)
+
+- Paneles caja, cierre de jornada, conceptos e historial de arqueos; API `/api/v1/caja/`.
+- Clientes: plantilla, importar y exportar; POS con pistola/SKU; inventario del día; auditoría sin diff JSON.
 
 ## 2026-11-20 — v1.3.4 Épica 16 (HU 88–93)
 

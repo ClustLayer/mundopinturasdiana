@@ -102,6 +102,7 @@ function CategoriasPanel() {
   }, [page, debQ])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
     void cargar()
   }, [cargar])
 
@@ -245,6 +246,7 @@ function ConceptosPanel() {
     void api("/api/v1/caja/categorias/?page=1&page_size=200&estado=activo").then(async (r) => {
       if (r.ok) setCats(((await r.json()) as { items: CategoriaMov[] }).items ?? [])
     })
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
     void cargar()
   }, [cargar])
 

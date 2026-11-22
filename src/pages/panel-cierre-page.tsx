@@ -35,6 +35,7 @@ export function PanelCierrePage() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
     void cargar()
     const t = window.setInterval(() => void cargar(), 10_000)
     return () => window.clearInterval(t)

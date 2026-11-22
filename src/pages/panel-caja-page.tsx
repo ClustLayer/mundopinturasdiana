@@ -76,14 +76,17 @@ export function PanelCajaPage() {
       setSedes(list)
       if (list[0]) setIdSede(String(list[0].id_sede))
     })
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
     void cargarConceptos()
   }, [cargarConceptos])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
     void cargarMovs()
   }, [cargarMovs])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
     void cargarCuadre()
     const t = window.setInterval(() => void cargarCuadre(), 12_000)
     return () => window.clearInterval(t)

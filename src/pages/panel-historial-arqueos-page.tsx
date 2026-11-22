@@ -45,6 +45,7 @@ export function PanelHistorialArqueosPage() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga remota
     void cargar()
   }, [cargar])
 
