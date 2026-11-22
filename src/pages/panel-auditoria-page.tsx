@@ -21,8 +21,6 @@ type FilaAuditoria = {
   ip_origen: string
   resumen: string
   motivo: string
-  datos_anteriores: Record<string, unknown> | null
-  datos_nuevos: Record<string, unknown> | null
 }
 
 type UsuarioOpt = { id_usuario: number; etiqueta: string; email: string }
@@ -38,39 +36,6 @@ function formatDt(iso: string | null): string {
   } catch {
     return iso
   }
-}
-
-function keysCambiados(antes: Record<string, unknown> | null, despues: Record<string, unknown> | null): Set<string> {
-  const names = new Set([...Object.keys(antes ?? {}), ...Object.keys(despues ?? {})])
-  const out = new Set<string>()
-  for (const k of names) {
-    if (JSON.stringify(antes?.[k]) !== JSON.stringify(despues?.[k])) out.add(k)
-  }
-  return out
-}
-
-function JsonBlock({
-  data,
-  highlight,
-}: {
-  data: Record<string, unknown> | null
-  highlight: Set<string>
-}) {
-  if (!data || Object.keys(data).length === 0) {
-    return <span className="text-ink/40">—</span>
-  }
-  return (
-    <ul className="space-y-1 text-xs">
-      {Object.entries(data).map(([k, v]) => (
-        <li
-          key={k}
-          className={highlight.has(k) ? "rounded bg-brand/10 px-1 font-semibold text-brand-dark" : ""}
-        >
-          <span className="text-plum">{k}</span>: {typeof v === "object" ? JSON.stringify(v) : String(v)}
-        </li>
-      ))}
-    </ul>
-  )
 }
 
 export function PanelAuditoriaPage() {
@@ -408,25 +373,10 @@ export function PanelAuditoriaPage() {
                 <span className="font-bold text-plum">Acción:</span> {detalle.accion}
               </p>
             </div>
-            <div>
-              <h3 className="mb-2 text-sm font-bold text-plum">Datos anteriores</h3>
-              <JsonBlock
-                data={detalle.datos_anteriores}
-                highlight={keysCambiados(detalle.datos_anteriores, detalle.datos_nuevos)}
-              />
+            <div className="sm:col-span-2 rounded-lg border border-plum/15 bg-plum-soft/40 p-3 text-sm">
+              <span className="font-bold text-plum">Motivo / detalle:</span>{" "}
+              {detalle.motivo && detalle.motivo !== "—" ? detalle.motivo : detalle.resumen || "—"}
             </div>
-            <div>
-              <h3 className="mb-2 text-sm font-bold text-plum">Datos nuevos</h3>
-              <JsonBlock
-                data={detalle.datos_nuevos}
-                highlight={keysCambiados(detalle.datos_anteriores, detalle.datos_nuevos)}
-              />
-            </div>
-            {detalle.motivo && detalle.motivo !== "—" && (
-              <div className="sm:col-span-2 rounded-lg border border-plum/15 bg-plum-soft/40 p-3 text-sm">
-                <span className="font-bold text-plum">Motivo:</span> {detalle.motivo}
-              </div>
-            )}
           </div>
         )}
       </Modal>

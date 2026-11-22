@@ -41,8 +41,6 @@ type Mov = {
   tipo: string
   cantidad: number
   delta: number
-  anterior: number
-  nueva: number
   costo_unitario: string | null
   motivo: string
   referencia: string
@@ -265,15 +263,21 @@ function Kardex() {
           </select>
         </label>
         <label className="text-xs font-semibold text-ink/70">
-          Desde
+          Desde (opcional)
           <input type="date" className={`${input} w-44`} value={desde} onChange={(e) => setDesde(e.target.value)} />
         </label>
         <label className="text-xs font-semibold text-ink/70">
-          Hasta
+          Hasta (opcional)
           <input type="date" className={`${input} w-44`} value={hasta} onChange={(e) => setHasta(e.target.value)} />
         </label>
+        <button type="button" className={btnGhost} onClick={() => { setDesde(""); setHasta("") }}>
+          Solo hoy
+        </button>
         <button type="submit" className={btnGhost}><Search size={15} /> Filtrar</button>
       </form>
+      <p className="mb-2 text-xs text-ink/60">
+        Por defecto se muestran los movimientos del día actual. Indique un rango de fechas para consultar otro periodo.
+      </p>
       <p className="mb-3 flex flex-wrap gap-2 text-xs" aria-label="Leyenda de tipos">
         {["entrada_compra", "ajuste_positivo", "ajuste_negativo", "merma", "traslado_entrada"].map((t) => (
           <TypeBadge key={t} value={t} />
@@ -291,8 +295,6 @@ function Kardex() {
                 <th>Sede</th>
                 <th>Tipo</th>
                 <th className="text-right">Cant.</th>
-                <th className="text-right">Anterior</th>
-                <th className="text-right">Nuevo</th>
                 <th className="text-right">Costo</th>
                 <th>Proveedor</th>
                 <th>Referencia / motivo</th>
@@ -312,8 +314,6 @@ function Kardex() {
                     {x.delta > 0 ? "+" : "−"}
                     {x.cantidad}
                   </td>
-                  <td className="text-right text-ink/60">{x.anterior}</td>
-                  <td className="text-right">{x.nueva}</td>
                   <td className="text-right">{money(x.costo_unitario)}</td>
                   <td className="text-xs">{x.proveedor || "—"}</td>
                   <td className="max-w-48 truncate text-xs" title={[x.referencia, x.motivo].filter(Boolean).join(" · ")}>
