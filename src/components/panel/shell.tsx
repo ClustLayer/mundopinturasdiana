@@ -36,7 +36,7 @@ import {
 import { Navigate } from "react-router-dom"
 import { MSG, calcularAvisoMs, rutaDeRol } from "../../features/auth/logic"
 import { useAccesos } from "../../features/accesos/accesos-provider"
-import { puedeModuloCatalogo } from "../../features/accesos/catalogo-panel"
+import { puedeModuloCaja, puedeModuloCatalogo } from "../../features/accesos/catalogo-panel"
 import { api, mensajeDe, renovarUnaVez } from "../../shared/api"
 import { GlobalTooltips } from "../ui/global-tooltips"
 import { useApp } from "../../app/providers"
@@ -55,6 +55,7 @@ const ICONS: Record<string, LucideIcon> = {
   pos: ShoppingBag,
   domicilios: Truck,
   caja: Wallet,
+  historial_caja: History,
   cierre: CalendarCheck,
   eventos: CalendarDays,
   facturacion: FileCheck2,
@@ -78,6 +79,7 @@ const ORDER = [
   "caja",
   "cierre",
   "conceptos",
+  "historial_caja",
   "productos",
   "categorias",
   "marcas",
@@ -112,9 +114,10 @@ const LABELS: Record<string, string> = {
   pos: "Punto de venta",
   domicilios: "Domicilios",
   facturacion: "Factura electrónica",
-  caja: "Cuentas",
+  caja: "Caja",
   conceptos: "Conceptos de caja",
   cierre: "Cierre de jornada",
+  historial_caja: "Historial de arqueos",
   eventos: "Eventos",
   promociones: "Promociones y sorteos",
   auditoria: "Auditoría",
@@ -252,6 +255,8 @@ export function PanelShell({ children }: { children: ReactNode }) {
     if (m === "permisos" && sesion?.rol !== "Administrador") return false
     if (m === "categorias" || m === "marcas" || m === "tipos_producto" || m === "vitrinas")
       return puedeModuloCatalogo(m, puedeModulo)
+    if (m === "caja" || m === "conceptos" || m === "cierre" || m === "categorias_caja" || m === "historial_caja")
+      return puedeModuloCaja(m, puedeModulo)
     return puedeModulo(m)
   }
   const items = [

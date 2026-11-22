@@ -17,7 +17,11 @@ import { PanelPosPage } from "./panel-pos-page"
 import { PanelVentasPage } from "./panel-ventas-page"
 import { PanelDomiciliosPage } from "./panel-domicilios-page"
 import { PanelFacturacionPage } from "./panel-facturacion-page"
-import { PanelCuentasPage } from "./panel-cuentas-page"
+import { PanelCajaPage } from "./panel-caja-page"
+import { PanelCierrePage } from "./panel-cierre-page"
+import { PanelConceptosPage } from "./panel-conceptos-page"
+import { PanelHistorialArqueosPage } from "./panel-historial-arqueos-page"
+import { puedeModuloCaja } from "../features/accesos/catalogo-panel"
 import { PanelProductosPage } from "./panel-productos-page"
 import { PanelVitrinasPage } from "./panel-vitrinas-page"
 import { puedeModuloCatalogo } from "../features/accesos/catalogo-panel"
@@ -232,7 +236,13 @@ export function PanelModulePage() {
   const { puedeModulo, error: accesosError } = useAccesos()
   if (!sesionLista) return null
   if (!sesion) return <Navigate to="/login" replace />
-  if (modulo !== "cuenta" && !puedeModulo(modulo) && !puedeModuloCatalogo(modulo, puedeModulo) && !accesosError) {
+  if (
+    modulo !== "cuenta" &&
+    !puedeModulo(modulo) &&
+    !puedeModuloCatalogo(modulo, puedeModulo) &&
+    !puedeModuloCaja(modulo, puedeModulo) &&
+    !accesosError
+  ) {
     return <PanelAccesoDenegadoPage />
   }
   if (modulo === "usuarios" && (puedeModulo("usuarios") || accesosError)) return <PanelUsuariosPage />
@@ -250,7 +260,11 @@ export function PanelModulePage() {
   if (modulo === "ventas" && (puedeModulo("ventas") || accesosError)) return <PanelVentasPage />
   if (modulo === "domicilios" && (puedeModulo("domicilios") || accesosError)) return <PanelDomiciliosPage />
   if (modulo === "facturacion" && (puedeModulo("facturacion") || accesosError)) return <PanelFacturacionPage />
-  if (modulo === "caja" && (puedeModulo("caja") || accesosError)) return <PanelCuentasPage />
+  if (modulo === "caja" && (puedeModuloCaja("caja", puedeModulo) || accesosError)) return <PanelCajaPage />
+  if (modulo === "cierre" && (puedeModuloCaja("cierre", puedeModulo) || accesosError)) return <PanelCierrePage />
+  if (modulo === "conceptos" && (puedeModuloCaja("conceptos", puedeModulo) || accesosError)) return <PanelConceptosPage />
+  if ((modulo === "historial_caja" || modulo === "historial-caja") && (puedeModuloCaja("historial_caja", puedeModulo) || accesosError))
+    return <PanelHistorialArqueosPage />
   if (modulo === "categorias" && (puedeModuloCatalogo("categorias", puedeModulo) || accesosError))
     return <PanelCatalogoParamPage tipo="categorias" />
   if (modulo === "marcas" && (puedeModuloCatalogo("marcas", puedeModulo) || accesosError)) return <PanelCatalogoParamPage tipo="marcas" />
