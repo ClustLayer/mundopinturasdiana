@@ -21,6 +21,7 @@ import { PanelFacturacionPage } from "./panel-facturacion-page"
 import { PanelCajaPage } from "./panel-caja-page"
 import { PanelCierrePage } from "./panel-cierre-page"
 import { PanelConceptosPage } from "./panel-conceptos-page"
+import { PanelCategoriasCajaPage } from "./panel-categorias-caja-page"
 import { PanelHistorialArqueosPage } from "./panel-historial-arqueos-page"
 import { puedeModuloCaja } from "../features/accesos/catalogo-panel"
 import { PanelProductosPage } from "./panel-productos-page"
@@ -265,6 +266,11 @@ export function PanelModulePage() {
   if (modulo === "caja" && (puedeModuloCaja("caja", puedeModulo) || accesosError)) return <PanelCajaPage />
   if (modulo === "cierre" && (puedeModuloCaja("cierre", puedeModulo) || accesosError)) return <PanelCierrePage />
   if (modulo === "conceptos" && (puedeModuloCaja("conceptos", puedeModulo) || accesosError)) return <PanelConceptosPage />
+  if (
+    (modulo === "categorias_caja" || modulo === "categorias-caja") &&
+    (puedeModuloCaja("categorias_caja", puedeModulo) || accesosError)
+  )
+    return <PanelCategoriasCajaPage />
   if ((modulo === "historial_caja" || modulo === "historial-caja") && (puedeModuloCaja("historial_caja", puedeModulo) || accesosError))
     return <PanelHistorialArqueosPage />
   if (modulo === "categorias" && (puedeModuloCatalogo("categorias", puedeModulo) || accesosError))
