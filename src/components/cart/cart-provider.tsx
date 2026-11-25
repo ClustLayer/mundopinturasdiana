@@ -30,7 +30,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setLines(raw.filter((l) => l && l.id != null && l.quantity > 0).map((l) => ({ ...l, key: l.key ?? lineKey(l.id, l.color, l.size) })))
       }
     } catch {
-      /* storage corrupto */
+      localStorage.removeItem(KEY)
+      setLines([])
     }
     setReady(true)
     const sync = (e: StorageEvent) => {
@@ -59,11 +60,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLines((s) => {
       const key = lineKey(l.id, l.color, l.size)
       const i = s.findIndex((x) => x.key === key)
-      if (i >= 0) return s.map((x, j) => (j === i ? { ...x, quantity: Math.min(999, x.quantity + q) } : x))
+      if (i >= 0) return s.map((x, j) => (j === i ? { ...x, quantity: Math.min(99, x.quantity + q) } : x))
       return [...s, { ...l, key, quantity: q }]
     })
   }, [])
-  const setQty = useCallback((key: string, q: number) => setLines((s) => s.map((x) => (x.key === key ? { ...x, quantity: Math.max(1, Math.min(999, Math.floor(q) || 1)) } : x))), [])
+  const setQty = useCallback((key: string, q: number) => setLines((s) => s.map((x) => (x.key === key ? { ...x, quantity: Math.max(1, Math.min(99, Math.floor(q) || 1)) } : x))), [])
   const remove = useCallback((key: string) => setLines((s) => s.filter((x) => x.key !== key)), [])
   const replace = useCallback((l: CartLine[]) => setLines(l), [])
   const clear = useCallback(() => setLines([]), [])

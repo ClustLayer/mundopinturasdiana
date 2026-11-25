@@ -5,7 +5,7 @@ import type { AccesosPanel } from "./use-accesos-panel"
 import { puedeVerModulo } from "./logic"
 
 const CACHE_KEY = "mpdw_accesos_panel_v2"
-const CLAVES_CATALOGO = new Set(["productos", "categorias", "marcas", "tipos_producto"])
+const CLAVES_CATALOGO = new Set(["productos", "categorias", "marcas", "tipos_producto", "vitrinas"])
 const CACHE_MS = 60_000
 
 type Ctx = {

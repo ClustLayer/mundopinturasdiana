@@ -13,7 +13,13 @@ import { PanelInventarioPage } from "./panel-inventario-page"
 import { PanelClientesPage } from "./panel-clientes-page"
 import { PanelProveedoresPage } from "./panel-proveedores-page"
 import { PanelEventosPage } from "./panel-eventos-page"
+import { PanelPosPage } from "./panel-pos-page"
+import { PanelVentasPage } from "./panel-ventas-page"
+import { PanelDomiciliosPage } from "./panel-domicilios-page"
+import { PanelFacturacionPage } from "./panel-facturacion-page"
+import { PanelCuentasPage } from "./panel-cuentas-page"
 import { PanelProductosPage } from "./panel-productos-page"
+import { PanelVitrinasPage } from "./panel-vitrinas-page"
 import { puedeModuloCatalogo } from "../features/accesos/catalogo-panel"
 import { PanelCuentaPage } from "./panel-cuenta-page"
 import { PanelPermisosPage } from "./panel-permisos-page"
@@ -235,10 +241,16 @@ export function PanelModulePage() {
   }
   if (modulo === "sedes" && (puedeModulo("sedes") || accesosError)) return <PanelSedesPage />
   if (modulo === "productos" && (puedeModulo("productos") || accesosError)) return <PanelProductosPage />
+  if (modulo === "vitrinas" && (puedeModuloCatalogo("vitrinas", puedeModulo) || accesosError)) return <PanelVitrinasPage />
   if (modulo === "inventario" && (puedeModulo("inventario") || accesosError)) return <PanelInventarioPage />
   if (modulo === "clientes" && (puedeModulo("clientes") || accesosError)) return <PanelClientesPage />
   if (modulo === "proveedores" && (puedeModulo("proveedores") || accesosError)) return <PanelProveedoresPage />
   if (modulo === "eventos" && (puedeModulo("eventos") || accesosError)) return <PanelEventosPage />
+  if (modulo === "pos" && (puedeModulo("pos") || accesosError)) return <PanelPosPage />
+  if (modulo === "ventas" && (puedeModulo("ventas") || accesosError)) return <PanelVentasPage />
+  if (modulo === "domicilios" && (puedeModulo("domicilios") || accesosError)) return <PanelDomiciliosPage />
+  if (modulo === "facturacion" && (puedeModulo("facturacion") || accesosError)) return <PanelFacturacionPage />
+  if (modulo === "caja" && (puedeModulo("caja") || accesosError)) return <PanelCuentasPage />
   if (modulo === "categorias" && (puedeModuloCatalogo("categorias", puedeModulo) || accesosError))
     return <PanelCatalogoParamPage tipo="categorias" />
   if (modulo === "marcas" && (puedeModuloCatalogo("marcas", puedeModulo) || accesosError)) return <PanelCatalogoParamPage tipo="marcas" />

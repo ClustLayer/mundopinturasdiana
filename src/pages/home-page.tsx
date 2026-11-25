@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowRight, MessageCircle, Palette, ShoppingBag, Send, MapPin, Brush, Building2, Droplets, Layers, Paintbrush, Sun } from "lucide-react"
-import { fetchPublicEvents, getBestSellerIds, getBranches, getProducts, getPromotions, getSiteImages, getSiteSettings, serverToday, type PublicEvent, type PublicProduct } from "../lib/public-data"
+import { API_URL } from "../shared/api"
+import { fetchCatalogo, mapProducto } from "../features/tienda/api"
+import { fetchPublicEvents, getBranches, getSiteImages, getSiteSettings, serverToday, type PublicEvent, type PublicProduct } from "../lib/public-data"
 import { Reveal } from "../components/ui/reveal"
 import { Blob, BrushUnderline, Squiggle, Star, Sticker } from "../components/ui/splash"
 import { ProductCard } from "../components/product-card"
@@ -12,8 +14,11 @@ import { PromotionsSection } from "../components/site/promotions-section"
 import { EventsSection } from "../components/site/events-section"
 import { EN_DESARROLLO } from "../features/en-desarrollo"
 
+type CarruselApi = { id: string; kicker: string; title: string; href: string; products: PublicProduct[]; color: string }
+
 export function HomePage() {
-  const products = getProducts()
+  const [products, setProducts] = useState<PublicProduct[]>([])
+  const [carousels, setCarousels] = useState<CarruselApi[]>([])
   const settings = getSiteSettings()
   const branches = getBranches()
   const [principal, setPrincipal] = useState<SedePublica | null>(null)
@@ -29,8 +34,6 @@ export function HomePage() {
   const visitaMaps = principal ? mapsDeSede(principal) : "/sedes"
   const imgs = getSiteImages()
   const imageMural = '/brand/pintando-ciudad.jpeg'
-  const bestIds = getBestSellerIds()
-  const promotions = getPromotions()
   const [events, setEvents] = useState<PublicEvent[]>([])
   const today = serverToday()
   useEffect(() => {
@@ -39,23 +42,34 @@ export function HomePage() {
     }, 0)
     return () => window.clearTimeout(t)
   }, [])
-  const flagship = products.filter((p) => p.featured).slice(0, 8)
+  useEffect(() => {
+    void (async () => {
+      try {
+        const cat = await fetchCatalogo({ page: 1, orden: "destacados" })
+        setProducts(cat.items.map(mapProducto))
+        const r = await fetch(`${API_URL}/api/v1/tienda/escaparates/`)
+        if (r.ok) {
+          const body = (await r.json()) as {
+            items: { clave: string; frase: string; titulo: string; enlace_catalogo: string; color_acento: string; productos: unknown[] }[]
+          }
+          setCarousels(
+            body.items.map((s) => ({
+              id: s.clave,
+              kicker: s.frase,
+              title: s.titulo,
+              href: s.enlace_catalogo,
+              color: s.color_acento,
+              products: (s.productos as Parameters<typeof mapProducto>[0][]).map(mapProducto),
+            })),
+          )
+        }
+      } catch {
+        /* catálogo offline */
+      }
+    })()
+  }, [])
+  const flagship = products.slice(0, 8)
   const words = ['Vinilos DECO', 'Interiores', 'Exteriores', 'Esmaltes', 'Lacas', 'Pintura de tráfico', 'Murales', 'Asesoría de color']
-
-  const norm = (s?: string | null) => (s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-  const slugOf = (re: RegExp, fallback: string) => products.find((p) => p.categorySlug && re.test(norm(p.category)))?.categorySlug ?? fallback
-  const byRank = new Map(bestIds.map((id, i) => [id, i]))
-  const bestSellers = bestIds.length
-    ? products.filter((p) => byRank.has(String(p.id))).sort((a, b) => byRank.get(String(a.id))! - byRank.get(String(b.id))!).slice(0, 10)
-    : [...products.filter((p) => p.featured), ...products.filter((p) => !p.featured)].slice(0, 10)
-  const pick = (f: (p: PublicProduct) => boolean) => products.filter(f).slice(0, 10)
-  const inCat = (p: PublicProduct, re: RegExp) => re.test(norm(`${p.category} ${p.categorySlug} ${p.name} ${p.productType}`))
-  const carousels = [
-    { id: 'mas-vendidos', kicker: 'Lo que más se lleva Cali', title: 'Los más vendidos', href: '/catalogo', products: bestSellers, color: '#E11D74' },
-    { id: 'artisticos', kicker: 'Para crear', title: 'Artísticos', href: '/catalogo?tipo=artistico', products: pick((p) => p.artistic || /artistic|mural|kit/.test(norm(`${p.category} ${p.name}`))), color: '#00ACC1' },
-    { id: 'ferreteria', kicker: 'Todo para el trabajo', title: 'Ferretería', href: `/catalogo?categoria=${slugOf(/herramient|ferreter/, 'herramientas')}`, products: pick((p) => inCat(p, /herramient|ferreter|brocha|rodillo|cinta|masilla|thinner|lixa|imprimante/)), color: '#FFC93C' },
-    { id: 'esmaltes', kicker: 'Protección y acabado', title: 'Esmaltes, lacas y anticorrosivos', href: `/catalogo?categoria=${slugOf(/esmalte|laca|barniz/, 'esmaltes')}`, products: pick((p) => inCat(p, /esmalte|laca|barniz|anticorros|automotriz/)), color: '#4A154B' },
-  ]
 
   return (
     <>
@@ -166,7 +180,7 @@ export function HomePage() {
         <ProductCarousel key={c.id} {...c} products={[]} empty={EN_DESARROLLO} />
       ))}
 
-      <PromotionsSection promotions={promotions} today={today} whatsapp={settings.whatsapp} />
+      <PromotionsSection promotions={[]} today={today} whatsapp={settings.whatsapp} />
 
       <EventsSection events={events} today={today} />
 

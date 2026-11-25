@@ -13,6 +13,7 @@ import {
   Handshake,
   History,
   KeyRound,
+  LayoutGrid,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -61,6 +62,7 @@ const ICONS: Record<string, LucideIcon> = {
   categorias: Tags,
   marcas: Award,
   tipos_producto: Shapes,
+  vitrinas: LayoutGrid,
   promociones: Gift,
   auditoria: History,
   analitica: BarChart3,
@@ -80,6 +82,7 @@ const ORDER = [
   "categorias",
   "marcas",
   "tipos_producto",
+  "vitrinas",
   "inventario",
   "clientes",
   "proveedores",
@@ -100,6 +103,7 @@ const LABELS: Record<string, string> = {
   categorias: "Categorías de producto",
   marcas: "Marcas",
   tipos_producto: "Tipos de producto",
+  vitrinas: "Vitrinas del inicio",
   productos: "Productos",
   inventario: "Inventario",
   clientes: "Clientes",
@@ -108,7 +112,7 @@ const LABELS: Record<string, string> = {
   pos: "Punto de venta",
   domicilios: "Domicilios",
   facturacion: "Factura electrónica",
-  caja: "Caja",
+  caja: "Cuentas",
   conceptos: "Conceptos de caja",
   cierre: "Cierre de jornada",
   eventos: "Eventos",
@@ -246,7 +250,8 @@ export function PanelShell({ children }: { children: ReactNode }) {
   const base = rutaDeRol(sesion.rol)
   const visibleModulo = (m: string) => {
     if (m === "permisos" && sesion?.rol !== "Administrador") return false
-    if (m === "categorias" || m === "marcas" || m === "tipos_producto") return puedeModuloCatalogo(m, puedeModulo)
+    if (m === "categorias" || m === "marcas" || m === "tipos_producto" || m === "vitrinas")
+      return puedeModuloCatalogo(m, puedeModulo)
     return puedeModulo(m)
   }
   const items = [
@@ -300,7 +305,7 @@ export function PanelShell({ children }: { children: ReactNode }) {
   const side = render(false)
 
   return (
-    <div className={`min-h-dvh bg-paper transition-[grid-template-columns] duration-200 lg:grid ${collapsed ? "lg:grid-cols-[4.5rem_1fr]" : "lg:grid-cols-[17rem_1fr]"}`}>
+    <div data-panel-shell className={`min-h-dvh bg-paper transition-[grid-template-columns] duration-200 lg:grid ${collapsed ? "lg:grid-cols-[4.5rem_1fr]" : "lg:grid-cols-[17rem_1fr]"}`}>
       <a href="#panel-main" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:p-3">
         Saltar al contenido
       </a>
