@@ -17,18 +17,21 @@ import { useAccesos } from "../features/accesos/accesos-provider"
 import { toast } from "../features/en-desarrollo"
 import { api, cuerpoError, mensajeDe } from "../shared/api"
 
-const TIPOS = ["Nequi", "Bancolombia", "Davivienda", "NuBanq", "Banco Agrario", "Banco AVVILLAS"] as const
+const BANCOS = ["Nequi", "Bancolombia", "Davivienda", "NuBanq", "Banco Agrario", "Banco AVVILLAS"] as const
+const TIPOS_CUENTA = ["Ahorros", "Corriente", "Billetera digital"] as const
 
 type Cuenta = {
   id_cuenta_bancaria: number
   nombre: string
+  banco: string
   tipo_cuenta: string
   numero: string
+  numero_enmascarado?: string
   estado: boolean
   version_fila: number
 }
 
-export function PanelCuentasPage() {
+export function PanelCuentasPage({ embedded }: { embedded?: boolean } = {}) {
   const { accionesModulo } = useAccesos()
   const acciones = accionesModulo("caja")
   const puedeCrear = puedeAccion(acciones, "Crear")
@@ -39,9 +42,10 @@ export function PanelCuentasPage() {
   const [q, setQ] = useState("")
   const debQ = useDebounced(q, 300)
   const [modal, setModal] = useState<"new" | number | null>(null)
-  const [form, setForm] = useState<{ nombre: string; tipo_cuenta: string; numero: string; estado: boolean; version_fila: number }>({
+  const [form, setForm] = useState<{ nombre: string; banco: string; tipo_cuenta: string; numero: string; estado: boolean; version_fila: number }>({
     nombre: "",
-    tipo_cuenta: TIPOS[0],
+    banco: BANCOS[0],
+    tipo_cuenta: TIPOS_CUENTA[0],
     numero: "",
     estado: true,
     version_fila: 1,
@@ -63,7 +67,7 @@ export function PanelCuentasPage() {
     run(async () => {
       const r = await api(`/api/v1/caja/cuentas/${c.id_cuenta_bancaria}/`, {
         method: "PATCH",
-        body: JSON.stringify({ nombre: c.nombre, tipo_cuenta: c.tipo_cuenta, numero: c.numero, estado: !c.estado, version_fila: c.version_fila }),
+        body: JSON.stringify({ nombre: c.nombre, banco: c.banco, tipo_cuenta: c.tipo_cuenta, numero: c.numero, estado: !c.estado, version_fila: c.version_fila }),
       })
       if (!r.ok) {
         toast((await mensajeDe(r)) || "No fue posible actualizar la cuenta.")
@@ -81,6 +85,7 @@ export function PanelCuentasPage() {
   const abrirEditar = (c: Cuenta) => {
     setForm({
       nombre: c.nombre,
+      banco: c.banco || c.tipo_cuenta,
       tipo_cuenta: c.tipo_cuenta,
       numero: c.numero,
       estado: c.estado,
@@ -109,9 +114,13 @@ export function PanelCuentasPage() {
 
   return (
     <section>
-      <p className="font-mono text-xs uppercase tracking-widest text-cyan-dark">Tesorería</p>
-      <h1 className="font-display text-4xl font-extrabold text-plum">Cuentas bancarias</h1>
-      <p className="mt-2 max-w-2xl text-sm text-ink/65">Cuentas habilitadas para registrar transferencias en el punto de venta.</p>
+      {!embedded && (
+        <>
+          <p className="font-mono text-xs uppercase tracking-widest text-cyan-dark">Tesorería</p>
+          <h1 className="font-display text-4xl font-extrabold text-plum">Cuentas bancarias</h1>
+          <p className="mt-2 max-w-2xl text-sm text-ink/65">Cuentas habilitadas para registrar transferencias en el punto de venta.</p>
+        </>
+      )}
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
         <FieldLabel label="Buscar" className="min-w-[14rem] flex-1">
@@ -123,7 +132,7 @@ export function PanelCuentasPage() {
             className={btnPrimary}
             onClick={() => {
               setModal("new")
-              setForm({ nombre: "", tipo_cuenta: "Nequi", numero: "", estado: true, version_fila: 1 })
+              setForm({ nombre: "", banco: BANCOS[0], tipo_cuenta: TIPOS_CUENTA[0], numero: "", estado: true, version_fila: 1 })
               setError("")
             }}
           >
@@ -136,7 +145,8 @@ export function PanelCuentasPage() {
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-plum/10 bg-paper/80 text-xs uppercase tracking-wide text-ink/60">
             <tr>
-              <th className="p-3">Nombre</th>
+              <th className="p-3">Titular</th>
+              <th className="p-3">Banco</th>
               <th className="p-3">Tipo</th>
               <th className="p-3">Número</th>
               <th className="p-3">Estado</th>
@@ -152,8 +162,9 @@ export function PanelCuentasPage() {
                     {c.nombre}
                   </span>
                 </td>
+                <td className="p-3">{c.banco || "—"}</td>
                 <td className="p-3">{c.tipo_cuenta}</td>
-                <td className="p-3 font-mono">{c.numero}</td>
+                <td className="p-3 font-mono">{c.numero_enmascarado || c.numero}</td>
                 <td className="p-3">{c.estado ? "Activa" : "Inactiva"}</td>
                 <td className="p-3">
                   <div className="flex justify-end gap-1">
@@ -183,12 +194,19 @@ export function PanelCuentasPage() {
       <Pager page={page} total={total} totalPages={Math.max(1, Math.ceil(total / 15))} onPage={setPage} />
 
       <Modal open={modal !== null} title={modal === "new" ? "Crear cuenta" : "Editar cuenta"} onClose={() => setModal(null)}>
-        <FieldLabel label="Nombre" required>
+        <FieldLabel label="Titular / nombre en POS" required>
           <input className={input} value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} placeholder="Ej. Nequi Almacén" />
         </FieldLabel>
-        <FieldLabel label="Tipo" required className="mt-3">
+        <FieldLabel label="Banco" required className="mt-3">
+          <select className={input} value={form.banco} onChange={(e) => setForm({ ...form, banco: e.target.value })}>
+            {BANCOS.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </FieldLabel>
+        <FieldLabel label="Tipo de cuenta" required className="mt-3">
           <select className={input} value={form.tipo_cuenta} onChange={(e) => setForm({ ...form, tipo_cuenta: e.target.value })}>
-            {TIPOS.map((t) => (
+            {TIPOS_CUENTA.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
           </select>

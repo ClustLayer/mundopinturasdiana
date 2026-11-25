@@ -2,10 +2,12 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { api } from "../../shared/api"
 import { toast } from "../en-desarrollo"
 import type { AccesosPanel } from "./use-accesos-panel"
+import { puedeModuloCaja, puedeModuloCatalogo } from "./catalogo-panel"
 import { puedeVerModulo } from "./logic"
 
 const CACHE_KEY = "mpdw_accesos_panel_v2"
 const CLAVES_CATALOGO = new Set(["productos", "categorias", "marcas", "tipos_producto", "vitrinas"])
+const CLAVES_CAJA = new Set(["caja", "conceptos", "cierre", "categorias_caja", "historial_caja", "historial-caja"])
 const CACHE_MS = 60_000
 
 type Ctx = {
@@ -93,10 +95,16 @@ export function AccesosProvider({ activo, children }: { activo: boolean; childre
         const acts = data.acciones_por_modulo?.[clave]
         if (acts?.length) return puedeVerModulo(acts)
         if (CLAVES_CATALOGO.has(clave)) {
-          for (const k of CLAVES_CATALOGO) {
-            const ref = data.acciones_por_modulo?.[k]
-            if (ref?.length && puedeVerModulo(ref)) return true
-          }
+          return puedeModuloCatalogo(clave, (c) => {
+            const acts = data.acciones_por_modulo?.[c]
+            return Boolean(acts?.length && puedeVerModulo(acts)) || data.modulos.includes(c)
+          })
+        }
+        if (CLAVES_CAJA.has(clave)) {
+          return puedeModuloCaja(clave, (c) => {
+            const acts = data.acciones_por_modulo?.[c]
+            return Boolean(acts?.length && puedeVerModulo(acts)) || data.modulos.includes(c)
+          })
         }
         return data.modulos.includes(clave)
       },

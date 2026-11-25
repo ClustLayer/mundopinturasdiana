@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Loader2, Minus, Plus, Search, Trash2, UserPlus } from "lucide-react"
+import { Barcode, Loader2, Minus, Plus, Search, Trash2, UserPlus } from "lucide-react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { btnPrimary, Empty, FieldLabel, FormAlert, SearchCombobox, input, useDebounced, useDo } from "../components/panel/kit"
 import { toast } from "../features/en-desarrollo"
@@ -17,10 +17,19 @@ type Catalogos = {
   mensajeros: { id_mensajero: number; label: string }[]
 }
 
+const resolveProduct = (items: ProductoOp[], code: string) => {
+  const c = code.trim().toLowerCase()
+  if (!c) return undefined
+  return items.find(
+    (p) => p.codigo.toLowerCase() === c || (p.codigo_barras || "").toLowerCase() === c || String(p.id_producto) === c,
+  )
+}
+
 type ProductoOp = {
   id_producto: number
   nombre: string
   codigo: string
+  codigo_barras?: string
   precio_venta: number
   stock_disponible: number | null
   inventario_habilitado: boolean
@@ -78,7 +87,10 @@ export function PanelPosPage() {
   const [emitida, setEmitida] = useState<{ id_factura: number; consecutivo: string; total: number } | null>(null)
   const navigate = useNavigate()
   const [error, setError] = useState("")
+  const [scanMode, setScanMode] = useState(false)
+  const [scan, setScan] = useState("")
   const searchRef = useRef<HTMLInputElement>(null)
+  const scanRef = useRef<HTMLInputElement>(null)
   const { run, pending } = useDo()
 
   const metodoNombre = useCallback(
@@ -148,6 +160,22 @@ export function PanelPosPage() {
       return [{ ...s[0], valor: String(Math.round(totalVenta)) }]
     })
   }, [totalVenta, lineas.length])
+
+  const agregarPorCodigo = async (code: string) => {
+    const local = resolveProduct(ops, code)
+    if (local) {
+      agregar(local)
+      setScan("")
+      return
+    }
+    const r = await api(`/api/v1/ventas/pos/productos/?q=${encodeURIComponent(code)}&id_sede=${idSede}`)
+    if (!r.ok) return
+    const d = (await r.json()) as { items: ProductoOp[] }
+    const hit = resolveProduct(d.items ?? [], code) ?? d.items?.[0]
+    if (hit) agregar(hit)
+    else toast("Producto no encontrado.")
+    setScan("")
+  }
 
   const agregar = (p: ProductoOp) => {
     const existente = lineas.find((l) => l.id_producto === p.id_producto)
@@ -320,17 +348,50 @@ export function PanelPosPage() {
               </select>
             </FieldLabel>
           </div>
-          <label className="relative mt-4 block">
-            <span className="sr-only">Buscar producto</span>
-            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-plum/50" />
-            <input
-              ref={searchRef}
-              className={`${input} pl-10`}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Nombre, SKU o código de barras (Ctrl+K)"
-            />
-          </label>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              aria-pressed={scanMode}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold ${scanMode ? "bg-plum text-white" : "border-2 border-plum/15 text-plum"}`}
+              onClick={() => {
+                setScanMode((m) => !m)
+                window.setTimeout(() => (scanMode ? searchRef.current?.focus() : scanRef.current?.focus()), 0)
+              }}
+            >
+              <Barcode size={15} aria-hidden /> Pistola códigos
+            </button>
+          </div>
+          {scanMode ? (
+            <label className="relative mt-3 block">
+              <span className="sr-only">Código de barras</span>
+              <Barcode size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-plum/50" />
+              <input
+                ref={scanRef}
+                className={`${input} pl-10`}
+                value={scan}
+                onChange={(e) => setScan(e.target.value)}
+                placeholder="Escanee o escriba el código y pulse Enter"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    void agregarPorCodigo(scan)
+                  }
+                }}
+              />
+            </label>
+          ) : (
+            <label className="relative mt-3 block">
+              <span className="sr-only">Buscar producto</span>
+              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-plum/50" />
+              <input
+                ref={searchRef}
+                className={`${input} pl-10`}
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Nombre, SKU o código de barras (Ctrl+K)"
+              />
+            </label>
+          )}
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {ops.map((p) => (
               <li key={p.id_producto}>
