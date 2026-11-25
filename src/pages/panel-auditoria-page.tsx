@@ -16,11 +16,18 @@ type FilaAuditoria = {
   fecha_hora: string | null
   usuario: UsuarioAnidado
   accion: string
-  entidad: string
-  id_entidad: number
+  entidad?: string
+  id_entidad?: number
   ip_origen: string
   resumen: string
   motivo: string
+  resultado?: string
+}
+
+const ACCIONES_SEGURIDAD = /^LOGIN_|CAMBIO_CONTRASENA|CAMBIO_PASSWORD/i
+
+function esAccionSeguridad(accion: string): boolean {
+  return ACCIONES_SEGURIDAD.test(accion.trim())
 }
 
 type UsuarioOpt = { id_usuario: number; etiqueta: string; email: string }
@@ -145,7 +152,7 @@ export function PanelAuditoriaPage() {
         const r = await api("/api/v1/auditoria/bitacora/acciones/")
         if (!r.ok) return
         const data = (await r.json()) as { acciones: string[] }
-        setCatalogoAcciones(data.acciones ?? [])
+        setCatalogoAcciones((data.acciones ?? []).filter(esAccionSeguridad))
       })()
     }, 0)
     return () => window.clearTimeout(t)
@@ -183,7 +190,7 @@ export function PanelAuditoriaPage() {
     <section>
       <h1 className="font-display text-3xl font-extrabold text-plum">Auditoría</h1>
       <p className="mt-2 max-w-2xl text-sm text-ink/70">
-        Quién hizo qué y cuándo. Los registros no se pueden editar ni borrar.
+        Accesos al sistema y cambios de contraseña. Los registros no se pueden editar ni borrar.
       </p>
 
       <div className="mt-6 flex flex-wrap items-end gap-3">
@@ -236,7 +243,7 @@ export function PanelAuditoriaPage() {
             value={q}
             maxLength={100}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Entidad, identificador o usuario"
+            placeholder="Usuario, motivo o IP"
             className={input}
           />
         </label>
@@ -303,7 +310,7 @@ export function PanelAuditoriaPage() {
             {mensaje}
           </p>
           <div className="mt-3 overflow-x-auto rounded-2xl border-2 border-plum/10 bg-white">
-            <table className="w-full min-w-[900px] text-left text-sm">
+            <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="bg-plum-soft text-xs uppercase tracking-wider text-plum">
                 <tr>
                   <th scope="col" className="px-4 py-3 font-bold">
@@ -314,12 +321,6 @@ export function PanelAuditoriaPage() {
                   </th>
                   <th scope="col" className="px-4 py-3 font-bold">
                     Acción
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-bold">
-                    Módulo
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-bold">
-                    ID
                   </th>
                   <th scope="col" className="px-4 py-3 font-bold">
                     IP
@@ -338,10 +339,8 @@ export function PanelAuditoriaPage() {
                     <td className="whitespace-nowrap px-4 py-3">{formatDt(r.fecha_hora)}</td>
                     <td className="px-4 py-3">{r.usuario.nombre || r.usuario.email || "—"}</td>
                     <td className="px-4 py-3">
-                      <AccionBadge accion={r.accion} entidad={r.entidad} />
+                      <AccionBadge accion={r.accion} />
                     </td>
-                    <td className="px-4 py-3">{r.entidad}</td>
-                    <td className="px-4 py-3">{r.id_entidad}</td>
                     <td className="font-mono text-xs text-ink/70">{r.ip_origen}</td>
                     <td className="max-w-xs truncate px-4 py-3 text-ink/80">{r.resumen}</td>
                     <td className="px-4 py-3 text-right">
@@ -371,6 +370,14 @@ export function PanelAuditoriaPage() {
               </p>
               <p>
                 <span className="font-bold text-plum">Acción:</span> {detalle.accion}
+              </p>
+              {detalle.resultado && (
+                <p>
+                  <span className="font-bold text-plum">Resultado:</span> {detalle.resultado}
+                </p>
+              )}
+              <p>
+                <span className="font-bold text-plum">IP:</span> {detalle.ip_origen}
               </p>
             </div>
             <div className="sm:col-span-2 rounded-lg border border-plum/15 bg-plum-soft/40 p-3 text-sm">
