@@ -20,8 +20,16 @@ Versionado del portal: **MAJOR.SPRINT.EPIC_IN_SPRINT** (`1` = major, `2` = Sprin
 | **1.3.3** | Sprint 3 · Épica 10 (control facturación externa — HU 59) |
 | **1.3.4** | Sprint 3 · Épica 16 (tienda pública y pedido WhatsApp — HU 88–93) |
 | **1.4.1** | Sprint 4 · Épica 11 (caja, cierre, conceptos e historial — HU 60–79) |
+| **1.4.2** | Sprint 4 · Épica 13 (auditoría de acceso) + Épica 21 (promociones y analítica de clics) |
 
 ---
+
+## 2026-11-25 — v1.4.2 Épica 13 y 21 (auditoría, promociones, clics WhatsApp)
+
+- Home: vitrinas con productos reales; promociones desde `GET /api/v1/tienda/promociones/`.
+- `PromotionsSection` alineada a demo; telemetría por lotes a `POST /api/v1/analitica/interacciones/`.
+- Panel `promociones` (CRUD gerente/admin); auditoría centrada en login y contraseña.
+- QA: `docs/qa/epic-13.md`, `docs/qa/epic-21.md`.
 
 ## 2026-11-21 — v1.4.1 Épica 11 (caja y reporte diario)
 

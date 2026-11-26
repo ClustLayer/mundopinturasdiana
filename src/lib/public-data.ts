@@ -1,5 +1,6 @@
 import { bogotaDay } from "./schedule"
 import { API_URL } from "../shared/api"
+import { mapPromocionPublica, type PromocionApi } from "../features/promociones/logic"
 
 export type PublicProduct = {
   id: number | string
@@ -103,6 +104,18 @@ export function getBestSellerIds(): string[] {
 
 export function getPromotions(): PublicPromotion[] {
   return []
+}
+
+/** Promociones visibles en el inicio (sin autenticación). */
+export async function fetchPublicPromotions(): Promise<{ items: PublicPromotion[]; error: boolean }> {
+  try {
+    const r = await fetch(`${API_URL}/api/v1/tienda/promociones/`)
+    if (!r.ok) return { items: [], error: true }
+    const body = (await r.json()) as { items?: PromocionApi[] }
+    return { items: (body.items ?? []).map(mapPromocionPublica), error: false }
+  } catch {
+    return { items: [], error: true }
+  }
 }
 
 export function getPublicEvents(): PublicEvent[] {

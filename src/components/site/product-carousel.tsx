@@ -3,8 +3,9 @@ import { useRef } from "react"
 import { ArrowRight, ChevronLeft, ChevronRight, Palette } from "lucide-react"
 import { ProductCard } from "../product-card"
 import { Squiggle } from "../ui/splash"
-import { EN_DESARROLLO } from "../../features/en-desarrollo"
 import type { PublicProduct } from "../../lib/public-data"
+
+const EMPTY_DEFAULT = "Pronto agregaremos productos a esta vitrina."
 
 export function ProductCarousel({ id, kicker, title, href, products, color = '#00ACC1', empty }: { id: string; kicker: string; title: string; href: string; products: PublicProduct[]; color?: string; empty?: string }) {
   const rail = useRef<HTMLUListElement>(null)
@@ -37,8 +38,8 @@ export function ProductCarousel({ id, kicker, title, href, products, color = '#0
       ) : (
         <div className="stripes mt-8 rounded-3xl border-2 border-dashed border-plum/30 p-10 text-center">
           <Palette className="mx-auto size-9 text-brand" aria-hidden />
-          <p className="mt-3 font-display text-xl font-bold text-plum">{empty ?? EN_DESARROLLO}</p>
-          <p className="mt-1 text-sm text-ink/65">Los productos se cargarán cuando la integración con el backend esté activa.</p>
+          <p className="mt-3 font-display text-xl font-bold text-plum">{empty ?? EMPTY_DEFAULT}</p>
+          <p className="mt-1 text-sm text-ink/65">Mientras tanto, explora el catálogo completo.</p>
         </div>
       )}
     </section>

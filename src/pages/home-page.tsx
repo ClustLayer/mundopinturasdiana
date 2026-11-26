@@ -3,7 +3,17 @@ import { Link } from "react-router-dom"
 import { ArrowRight, MessageCircle, Palette, ShoppingBag, Send, MapPin, Brush, Building2, Droplets, Layers, Paintbrush, Sun } from "lucide-react"
 import { API_URL } from "../shared/api"
 import { fetchCatalogo, mapProducto } from "../features/tienda/api"
-import { fetchPublicEvents, getBranches, getSiteImages, getSiteSettings, serverToday, type PublicEvent, type PublicProduct } from "../lib/public-data"
+import {
+  fetchPublicEvents,
+  fetchPublicPromotions,
+  getBranches,
+  getSiteImages,
+  getSiteSettings,
+  serverToday,
+  type PublicEvent,
+  type PublicProduct,
+  type PublicPromotion,
+} from "../lib/public-data"
 import { Reveal } from "../components/ui/reveal"
 import { Blob, BrushUnderline, Squiggle, Star, Sticker } from "../components/ui/splash"
 import { ProductCard } from "../components/product-card"
@@ -12,7 +22,6 @@ import { digitos, fetchSedesPublicas, mapsDeSede, sedePrincipal, type SedePublic
 import { ProductCarousel } from "../components/site/product-carousel"
 import { PromotionsSection } from "../components/site/promotions-section"
 import { EventsSection } from "../components/site/events-section"
-import { EN_DESARROLLO } from "../features/en-desarrollo"
 
 type CarruselApi = { id: string; kicker: string; title: string; href: string; products: PublicProduct[]; color: string }
 
@@ -35,10 +44,21 @@ export function HomePage() {
   const imgs = getSiteImages()
   const imageMural = '/brand/pintando-ciudad.jpeg'
   const [events, setEvents] = useState<PublicEvent[]>([])
+  const [promotions, setPromotions] = useState<PublicPromotion[]>([])
+  const [promoError, setPromoError] = useState(false)
   const today = serverToday()
   useEffect(() => {
     const t = window.setTimeout(() => {
       void fetchPublicEvents().then(setEvents)
+    }, 0)
+    return () => window.clearTimeout(t)
+  }, [])
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      void fetchPublicPromotions().then(({ items, error }) => {
+        setPromotions(items)
+        setPromoError(error)
+      })
     }, 0)
     return () => window.clearTimeout(t)
   }, [])
@@ -177,10 +197,10 @@ export function HomePage() {
       )}
 
       {carousels.map((c) => (
-        <ProductCarousel key={c.id} {...c} products={[]} empty={EN_DESARROLLO} />
+        <ProductCarousel key={c.id} {...c} />
       ))}
 
-      <PromotionsSection promotions={[]} today={today} whatsapp={settings.whatsapp} />
+      <PromotionsSection promotions={promotions} today={today} whatsapp={settings.whatsapp} error={promoError} />
 
       <EventsSection events={events} today={today} />
 

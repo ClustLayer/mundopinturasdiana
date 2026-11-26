@@ -20,6 +20,13 @@ import { OriginBadge } from "../features/inventory/badges"
 import { toast } from "../features/en-desarrollo"
 import { API_URL, api, mensajeDe } from "../shared/api"
 
+function urlImagenProducto(imagenUrl: string): string {
+  const url = (imagenUrl || "").trim()
+  if (!url) return ""
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("/")) return url.startsWith("/") ? `${API_URL}${url}` : url
+  return `${API_URL}/api/v1/catalogo/media/${url}`
+}
+
 type Item = {
   id_producto: number
   codigo_producto: string
@@ -246,7 +253,7 @@ export function PanelProductosPage() {
             <tbody className="divide-y divide-plum/10">
               {items.map((p) => (
                 <tr key={p.id_producto} className="hover:bg-paper">
-                  <td className="px-3 py-2">{p.imagen_url ? <img src={`${API_URL}/api/v1/catalogo/media/${p.imagen_url}`} alt="" className="size-10 rounded-lg object-cover" /> : <span className="grid size-10 place-items-center rounded-lg bg-plum-soft text-[10px] text-plum">N/A</span>}</td>
+                  <td className="px-3 py-2">{p.imagen_url ? <img src={urlImagenProducto(p.imagen_url)} alt="" className="size-10 rounded-lg object-cover" /> : <span className="grid size-10 place-items-center rounded-lg bg-plum-soft text-[10px] text-plum">N/A</span>}</td>
                   <td className="px-3 py-2 font-mono text-xs">{p.codigo_producto}</td>
                   <td className="px-3 py-2 font-semibold">{p.nombre}</td>
                   <td className="px-3 py-2">{p.categoria ? p.categoria : <SinAsignarBadge />}</td>
@@ -556,7 +563,7 @@ function ProductoForm({ id, catalogos, onClose, onSaved }: { id: number | null; 
         inventario_habilitado: d.inventario_habilitado,
         origen: d.origen || "comprado",
       })
-      if (d.imagen_url) setPreview(`${API_URL}/api/v1/catalogo/media/${d.imagen_url}`)
+      if (d.imagen_url) setPreview(urlImagenProducto(d.imagen_url))
     })
   }, [id])
 
